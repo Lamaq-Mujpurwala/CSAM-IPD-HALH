@@ -1,0 +1,475 @@
+{
+  "config": {
+    "num_npcs": 5,
+    "memories_before_test": 30,
+    "forget_threshold": 200,
+    "forgetting_strategy": "consolidation",
+    "use_llm": true,
+    "llm_model": "llama3.2:3b",
+    "run_consolidation": true,
+    "seed": 42
+  },
+  "timestamp": "2026-01-03T13:49:28.239887",
+  "total_tests": 25,
+  "passed_tests": 18,
+  "recall_accuracy": 0.72,
+  "avg_response_latency_ms": 5456.068601608276,
+  "avg_memories_at_test": 156.0,
+  "summary": {
+    "by_test_case": {
+      "name_recall": {
+        "passed": 4,
+        "total": 5,
+        "accuracy": 0.8
+      },
+      "secret_recall": {
+        "passed": 3,
+        "total": 5,
+        "accuracy": 0.6
+      },
+      "preference_recall": {
+        "passed": 5,
+        "total": 5,
+        "accuracy": 1.0
+      },
+      "quest_recall": {
+        "passed": 1,
+        "total": 5,
+        "accuracy": 0.2
+      },
+      "number_recall": {
+        "passed": 5,
+        "total": 5,
+        "accuracy": 1.0
+      }
+    },
+    "by_npc": {
+      "Greta": {
+        "passed": 3,
+        "total": 5,
+        "accuracy": 0.6,
+        "final_memories": 200,
+        "l3_nodes": 37,
+        "consolidated_ratio": 0.97
+      },
+      "Marcus": {
+        "passed": 5,
+        "total": 5,
+        "accuracy": 1.0,
+        "final_memories": 200,
+        "l3_nodes": 35,
+        "consolidated_ratio": 0.97
+      },
+      "Old Tom": {
+        "passed": 4,
+        "total": 5,
+        "accuracy": 0.8,
+        "final_memories": 200,
+        "l3_nodes": 40,
+        "consolidated_ratio": 0.97
+      },
+      "Elena": {
+        "passed": 2,
+        "total": 5,
+        "accuracy": 0.4,
+        "final_memories": 200,
+        "l3_nodes": 36,
+        "consolidated_ratio": 0.97
+      },
+      "Finn": {
+        "passed": 4,
+        "total": 5,
+        "accuracy": 0.8,
+        "final_memories": 200,
+        "l3_nodes": 36,
+        "consolidated_ratio": 0.97
+      }
+    }
+  },
+  "test_results": [
+    {
+      "test_id": "name_recall",
+      "npc_name": "Greta",
+      "fact_stored": "my name is Alexander and I come from the Northern Kingdom",
+      "question": "Do you remember my name and where I'm from?",
+      "response": "Alexander, lad! Of course, I do. You're the one who stopped by just a fortnight ago, sharing tales of the Northern Kingdom's rugged beauty and trying our famous dragon ale. How's life in the North treating you?",
+      "context_retrieved": "- Traveler asked: What's your favorite memory?\n- [Knowledge] Greta\n- Traveler said: I want to tell you something important - my name is Alexander and I come from the Northern Kingdom\n- [Knowledge] A traveler inquired about various local topics, including festivals, transportation, area information, current weather, and news from the capital.\n- Traveler asked: Have you seen any travelers lately?",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "alexander",
+        "northern",
+        "kingdom"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5024.77240562439,
+      "memories_at_test": 64
+    },
+    {
+      "test_id": "secret_recall",
+      "npc_name": "Greta",
+      "fact_stored": "I have a secret - my mother Celestia was a powerful wizard who disappeared 10 years ago",
+      "question": "What did I tell you about my mother?",
+      "response": "(laughs warmly) Ah, Celestia! You shared that with me a while back, didn't you? Your mom's disappearance was quite a mystery, wasn't it? Still got you wondering what happened to her.",
+      "context_retrieved": "- I (Greta) responded to a question about Tell me a story abou...\n- Traveler said: I want to tell you something important - I have a secret - my mother Celestia was a powerful wizard who disappeared 10 years ago\n- [Knowledge] A traveler repeatedly asks Greta for her favorite memory, and each time, she responds with an answer that starts with \"What's your favorite...\" followed by a topic unrelated to the conversation.\n- [Knowledge] A traveler visited Greta, sharing stories of the Northern Kingdom",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "celestia"
+      ],
+      "recall_success": false,
+      "response_latency_ms": 5037.091016769409,
+      "memories_at_test": 128
+    },
+    {
+      "test_id": "preference_recall",
+      "npc_name": "Greta",
+      "fact_stored": "my favorite drink is honey mead and I always order it when I visit",
+      "question": "What's my favorite drink?",
+      "response": "(smiling) Ah, honey mead, eh? Well, I think I can recall that one... (leaning in) You're a regular here at the Golden Dragon, aren't you, Celestia? You always order it when you come to visit. (winking) I'll get the recipe ready just for you!",
+      "context_retrieved": "- Traveler said: I want to tell you something important - my favorite drink is honey mead and I always order it when I visit\n- [Knowledge] Celestia\n- Traveler asked: What's your favorite memory?\n- [Knowledge] Greta\n- [Knowledge] Traveler",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "honey",
+        "mead"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5120.136022567749,
+      "memories_at_test": 192
+    },
+    {
+      "test_id": "quest_recall",
+      "npc_name": "Greta",
+      "fact_stored": "I'm searching for the legendary Sword of Dawn which was lost in the Crystal Caves",
+      "question": "What quest am I on? What am I looking for?",
+      "response": "\"Ah, welcome back to the Golden Dragon, my friend! *wink* You're lookin' for some adventure, eh? I think I can help with that. You've been askin' about quests before, and I recall you were lookin' for somethin' related to the ancient ruins of Oakwood. Am I right?\"",
+      "context_retrieved": "- Traveler asked: Any quests available?\n- [Knowledge] Greta\n- I (Greta) responded to a question about Any quests available...\n- [Knowledge] A traveler inquired about various topics, including available quests, recent travelers, rumors, and the duration of Greta's employment. The traveler repeated their questions twice each, prompting Greta to respond accordingly.\n- [Knowledge] A traveler inquired about various topics, including festivals, dragon sightings, the king, work duration, and recent tra",
+      "fact_in_context": false,
+      "keywords_in_response": [],
+      "recall_success": false,
+      "response_latency_ms": 5174.513816833496,
+      "memories_at_test": 196
+    },
+    {
+      "test_id": "number_recall",
+      "npc_name": "Greta",
+      "fact_stored": "my lucky number is 42 and I always bet on it at the tavern games",
+      "question": "What's my lucky number?",
+      "response": "42! I remember you mentioning it last time we talked about Oakwood ruins. You were convinced it was going to bring you good fortune at the games, and I've seen you win some big pots with that luck, haven't I, Lucky 42?",
+      "context_retrieved": "- Traveler said: I want to tell you something important - my lucky number is 42 and I always bet on it at the tavern games\n- [Knowledge] Greta\n- Traveler asked: What's your best-selling item?\n- [Knowledge] A traveler visited the Golden Dragon, inquiring about quests and sharing personal details, including their lucky number 42. The innkeeper, Greta, recalled previous conversations about ancient ruins of Oakwood and provided general news updates from the capital, while also confirming rumors abou",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "42"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5120.3460693359375,
+      "memories_at_test": 200
+    },
+    {
+      "test_id": "name_recall",
+      "npc_name": "Marcus",
+      "fact_stored": "my name is Alexander and I come from the Northern Kingdom",
+      "question": "Do you remember my name and where I'm from?",
+      "response": "Alexander from the Northern Kingdom, yes... (pausing for a moment) I recall our last visit. You were inquiring about rare goods, specifically the Starlight Seren's lute strings. (smiling slightly) A fine instrument, indeed.\n\nAs for your question, this tavern has been a staple in these parts for over 20 years, with a rich history of travelers and traders passing through. It's seen its fair share of triumphs and tribulations, but the fire has always burned bright, keeping warm hearts and weary souls alike. ( gesturing to the roaring flames) I've had the pleasure of calling it home for many years now, and I must say, it never fails to bring a sense of community to those who",
+      "context_retrieved": "- Traveler asked: What's your favorite memory?\n- [Knowledge] Northern Kingdom\n- [Knowledge] Marcus\n- Traveler said: I want to tell you something important - my name is Alexander and I come from the Northern Kingdom\n- Traveler asked: What's the history of this tavern?",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "alexander",
+        "northern",
+        "kingdom"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 6365.4375076293945,
+      "memories_at_test": 64
+    },
+    {
+      "test_id": "secret_recall",
+      "npc_name": "Marcus",
+      "fact_stored": "I have a secret - my mother Celestia was a powerful wizard who disappeared 10 years ago",
+      "question": "What did I tell you about my mother?",
+      "response": "The disappearance of Celestia, that was quite a shock when it happened. You mentioned 10 years ago, if I recall correctly. The Northern Kingdom has been tight-lipped about the whole affair ever since. Still, I've heard whispers among the... business associates, for lack of a better term, about some suspicious dealings and potential rivalries between wizards.",
+      "context_retrieved": "- Traveler said: I want to tell you something important - I have a secret - my mother Celestia was a powerful wizard who disappeared 10 years ago\n- [Knowledge] Marcus\n- [Knowledge] Northern Kingdom\n- Traveler asked: What's your favorite memory?\n- I (Marcus) responded to a question about Tell me a story abou...",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "celestia",
+        "wizard"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5456.576347351074,
+      "memories_at_test": 128
+    },
+    {
+      "test_id": "preference_recall",
+      "npc_name": "Marcus",
+      "fact_stored": "my favorite drink is honey mead and I always order it when I visit",
+      "question": "What's my favorite drink?",
+      "response": "Honey mead! I remember you mentioning that when we first met, and now it seems like old habits die hard. Would you like me to bring a bottle of our finest honey mead from the village apothecary? On the house, if you'd like. (smiling)",
+      "context_retrieved": "- Traveler said: I want to tell you something important - my favorite drink is honey mead and I always order it when I visit\n- [Knowledge] Marcus\n- Traveler asked: What's your favorite memory?\n- [Knowledge] A traveler visits a tavern, where Marcus shares his knowledge of the establishment and its history. The traveler reveals a personal secret about their mother, a powerful wizard who disappeared 10 years ago.\n- [Knowledge] Alexander",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "honey",
+        "mead"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5171.176433563232,
+      "memories_at_test": 192
+    },
+    {
+      "test_id": "quest_recall",
+      "npc_name": "Marcus",
+      "fact_stored": "I'm searching for the legendary Sword of Dawn which was lost in the Crystal Caves",
+      "question": "What quest am I on? What am I looking for?",
+      "response": "You're still searching for the Sword of Dawn, I recall. You've been asking about the mountain pass, and I told you it's a treacherous route, but it's your best bet to find what you're looking for. The locals have heard rumors of a ancient temple hidden behind the pass, where the sword is said to be kept, but be warned, many have attempted to retrieve it before and never returned.",
+      "context_retrieved": "- Traveler asked: Any quests available?\n- [Knowledge] Marcus\n- I (Marcus) responded to a question about Any quests available...\n- [Knowledge] A traveler arrived at the location, asking about available quests and recent travelers. The host, Marcus, provided information and remembered previous conversations, including the traveler's favorite drink. The traveler shared their goal of finding the legendary Sword of Dawn and asked for directions to the mountain pass.\n- [Knowledge] A traveler inquired ",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "sword",
+        "dawn"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5664.916515350342,
+      "memories_at_test": 196
+    },
+    {
+      "test_id": "number_recall",
+      "npc_name": "Marcus",
+      "fact_stored": "my lucky number is 42 and I always bet on it at the tavern games",
+      "question": "What's my lucky number?",
+      "response": "Alexander, I recall you mentioning your... enthusiasm for the number 42 in our last conversation. You've been betting on it at the tavern games, if I'm correct? (smiling knowingly)",
+      "context_retrieved": "- Traveler said: I want to tell you something important - my lucky number is 42 and I always bet on it at the tavern games\n- [Knowledge] Alexander\n- [Knowledge] A traveler repeatedly asked Marcus about his favorite memory, and each time, Marcus responded with \"What's your favorite...\". This pattern suggests that the traveler was trying to elicit information from Marcus, but the conversation was not progressing as expected.\n- Traveler asked: What's your best-selling item?\n- [Knowledge] A traveler",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "42"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 4783.777236938477,
+      "memories_at_test": 200
+    },
+    {
+      "test_id": "name_recall",
+      "npc_name": "Old Tom",
+      "fact_stored": "my name is Alexander and I come from the Northern Kingdom",
+      "question": "Do you remember my name and where I'm from?",
+      "response": "(laughs) Ahah, now that you mention it, I do recall your name, lad! You're the one who's been askin' me all about this place, ain't ya? And you told me yourself, you're a traveler from the Northern Kingdom. Now, let me see... (strokes chin) Wasn't it three times you came in here, askin' about the local area and whatnot? (winks) You're a regular, ain't ya?",
+      "context_retrieved": "- Traveler asked: What's your favorite memory?\n- [Knowledge] Alexander\n- I (Old Tom) responded to a question about Have you heard about...\n- Traveler asked: Tell me about the local area.\n- [Knowledge] A traveler, Alexander from the Northern Kingdom, inquired about various topics with Old Tom, including the local area and valuable items. The conversation was repeated three times, with Old Tom responding each time before being acknowledged by Alexander.",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "northern",
+        "kingdom"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5773.464202880859,
+      "memories_at_test": 64
+    },
+    {
+      "test_id": "secret_recall",
+      "npc_name": "Old Tom",
+      "fact_stored": "I have a secret - my mother Celestia was a powerful wizard who disappeared 10 years ago",
+      "question": "What did I tell you about my mother?",
+      "response": "Your mom, Celestia, eh? That's a mighty interesting story. (slurs slightly) You told me she was a powerful wizard, disappeared 10 years ago... or did you say it was just a rumor? (laughs) I remember now, no, you said it was a secret! (winks) Well, I've heard some whispers 'bout wizards around these parts, but I ain't one to spread rumors. (leans in) Tell me, how's your mom doing on the other side... if she is doin' anything at all?",
+      "context_retrieved": "- Traveler said: I want to tell you something important - I have a secret - my mother Celestia was a powerful wizard who disappeared 10 years ago\n- [Knowledge] tavern\n- [Knowledge] Old Tom\n- Traveler asked: What's your favorite memory?\n- [Knowledge] A traveler inquired about various topics, and Old Tom provided responses regarding dragon sightings, recent travelers, the history of the tavern, available quests, and sharing a joke.",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "celestia",
+        "wizard",
+        "disappeared"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5686.20491027832,
+      "memories_at_test": 128
+    },
+    {
+      "test_id": "preference_recall",
+      "npc_name": "Old Tom",
+      "fact_stored": "my favorite drink is honey mead and I always order it when I visit",
+      "question": "What's my favorite drink?",
+      "response": "(laughs) Ah, honey mead, you say? Well, well! You're a connoisseur of fine drinks, I see. Reminds me of that traveler who came in here last year from the Northern Kingdom... told me he was on a quest to find the rarest meads in all the land. Said he'd tried them all, but none compared to the honey mead from Celestia. (winks) You know, I've got just the thing for you, traveler! Our tavern's got a special reserve of that sweet stuff, brewed by the finest beekeepers in the realm... (slurs slightly) would you like to try some?",
+      "context_retrieved": "- Traveler said: I want to tell you something important - my favorite drink is honey mead and I always order it when I visit\n- [Knowledge] Old Tom\n- [Knowledge] tavern\n- [Knowledge] Celestia\n- [Knowledge] Northern Kingdom",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "honey",
+        "mead"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5914.068937301636,
+      "memories_at_test": 192
+    },
+    {
+      "test_id": "quest_recall",
+      "npc_name": "Old Tom",
+      "fact_stored": "I'm searching for the legendary Sword of Dawn which was lost in the Crystal Caves",
+      "question": "What quest am I on? What am I looking for?",
+      "response": "(laughs) Ahah, you're lookin' for a quest, eh? Well, let me think... (slurs slightly) You were here just yesterday, askin' about working hours and whatnot. And the day before that, I believe you were inquirin' about available quests... (chuckles) Any quests available? Ah, but I remember now! There was a riddle goin' 'round town, somethin' about findin' the Golden Acorn. No one's managed to crack it yet, if you know what I mean... (winks) You might be just the fella for the job, eh?",
+      "context_retrieved": "- Traveler asked: Any quests available?\n- [Knowledge] Old Tom\n- [Knowledge] A traveler asked Old Tom multiple questions, and each time, he responded with the phrase \"Any [X] available?\" where X represents the topic of conversation.\n- I (Old Tom) responded to a question about Any quests available...\n- [Knowledge] A traveler inquired about various topics, and Old Tom provided responses to questions about working hours, recommendations, available quests, and his opinion on the king.",
+      "fact_in_context": false,
+      "keywords_in_response": [],
+      "recall_success": false,
+      "response_latency_ms": 5856.441020965576,
+      "memories_at_test": 196
+    },
+    {
+      "test_id": "number_recall",
+      "npc_name": "Old Tom",
+      "fact_stored": "my lucky number is 42 and I always bet on it at the tavern games",
+      "question": "What's my lucky number?",
+      "response": "(laughs) Ah, 42, you say? Well, I've seen some folks come and go with their lucky numbers, but that one's a new one! (chuckles) Reminds me of that time I met this half-elf bard who always bet on the number 13. Said it was bad luck for others, but good fortune for him. (winks) You know, I've got a feeling you might just be onto something with that 42 business... (leans in, lowering voice) Tell me, what's your system? Is it based on the alignment of the stars or perhaps the number of pints you drink before each game?",
+      "context_retrieved": "- Traveler said: I want to tell you something important - my lucky number is 42 and I always bet on it at the tavern games\n- [Knowledge] Golden Acorn\n- I (Old Tom) responded to a question about What's the most valu...\n- [Knowledge] tavern\n- Traveler asked: What's your best-selling item?",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "42"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5966.212749481201,
+      "memories_at_test": 200
+    },
+    {
+      "test_id": "name_recall",
+      "npc_name": "Elena",
+      "fact_stored": "my name is Alexander and I come from the Northern Kingdom",
+      "question": "Do you remember my name and where I'm from?",
+      "response": "(pauses, eyes narrowing slightly) The threads of memory are fragile, but I recall a mention of Alexander... (pauses again) A traveler with a troubled past. As for your name and homeland... (leans back in her chair, hands steepled together) I see the whispers of a foreign tongue, and a place shrouded in mist. But the details, like autumn leaves, are lost to the wind.",
+      "context_retrieved": "- Traveler asked: What's your favorite memory?\n- [Knowledge] Alexander\n- I (Elena) responded to a question about What's the history o...\n- Traveler asked: Tell me about the local area.\n- Traveler asked: What's the history of this tavern?",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "alexander"
+      ],
+      "recall_success": false,
+      "response_latency_ms": 5332.185745239258,
+      "memories_at_test": 64
+    },
+    {
+      "test_id": "secret_recall",
+      "npc_name": "Elena",
+      "fact_stored": "I have a secret - my mother Celestia was a powerful wizard who disappeared 10 years ago",
+      "question": "What did I tell you about my mother?",
+      "response": "The threads of memory weave together in unexpected ways. Celestia... (pausing to collect her thoughts) You spoke of a sorrow that lingers, like the shadows on a winter's night. The weight of loss still echoes within you, doesn't it? (her eyes seem to gaze into the distance, as if searching for answers)",
+      "context_retrieved": "- I (Elena) responded to a question about Tell me a story abou...\n- [Knowledge] A traveler shares their troubled past, mentioning a mother named Celestia who disappeared 10 years ago. Elena recalls fragments of information and offers cryptic responses, hinting at her own mysterious nature and connection to the threads of memory.\n- [Knowledge] A traveler inquired about various topics, including local history, guild information, valuable items, jokes, and news from the capital. Elena provided resp",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "celestia"
+      ],
+      "recall_success": false,
+      "response_latency_ms": 5435.531377792358,
+      "memories_at_test": 128
+    },
+    {
+      "test_id": "preference_recall",
+      "npc_name": "Elena",
+      "fact_stored": "my favorite drink is honey mead and I always order it when I visit",
+      "question": "What's my favorite drink?",
+      "response": "(A hint of a smile plays on my lips) Ah, honey mead. A choice not many people make. I've noticed you mention it when we spoke before, Alexander. You said it was your go-to comfort in... (pausing for a moment) ...other realms. Indeed, a drink that can soothe even the most weary of souls.",
+      "context_retrieved": "- Traveler said: I want to tell you something important - my favorite drink is honey mead and I always order it when I visit\n- [Knowledge] Alexander\n- I (Elena) responded to a question about What's your favorite...\n- Traveler asked: What's your favorite memory?\n- Traveler asked: What's your best-selling item?",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "honey",
+        "mead"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5237.739324569702,
+      "memories_at_test": 192
+    },
+    {
+      "test_id": "quest_recall",
+      "npc_name": "Elena",
+      "fact_stored": "I'm searching for the legendary Sword of Dawn which was lost in the Crystal Caves",
+      "question": "What quest am I on? What am I looking for?",
+      "response": "The threads of fate are woven with the whispers of those who wander. I sense that you're searching for something, but the tapestry is not yet revealed. You may be seeking a respite from the weight of your burden or perhaps a key to unlock a hidden path. Tell me, what echoes within your heart?",
+      "context_retrieved": "- Traveler asked: Any quests available?\n- [Knowledge] Elena\n- [Knowledge] A traveler inquired about the location, asking for stories, information on forest creatures and quests, rumors, and the duration of Elena's employment.\n- [Knowledge] A traveler repeatedly asked Elena about available quests, and she consistently responded that there were no new ones.\n- [Knowledge] A traveler inquired about various topics, including available quests, local information, favorite memories, job tenure, and best",
+      "fact_in_context": false,
+      "keywords_in_response": [],
+      "recall_success": false,
+      "response_latency_ms": 5148.303985595703,
+      "memories_at_test": 196
+    },
+    {
+      "test_id": "number_recall",
+      "npc_name": "Elena",
+      "fact_stored": "my lucky number is 42 and I always bet on it at the tavern games",
+      "question": "What's my lucky number?",
+      "response": "(laughs softly) Ah, I see you're a man of habit and superstition. Your lucky number is... (pauses for a moment) 42, I recall. Though, I must admit, I've seen many patrons come and go with their own \"lucky\" numbers, each convinced it holds the key to fortune or fate. (eyes narrow slightly) Still, some do indeed seem to find... luck in numbers.",
+      "context_retrieved": "- Traveler said: I want to tell you something important - my lucky number is 42 and I always bet on it at the tavern games\n- [Knowledge] mountain pass\n- [Knowledge] Elena\n- Traveler asked: What's your best-selling item?\n- [Knowledge] A traveler inquired about their quest, and Elena sensed they were searching for something. The conversation was interrupted by the traveler sharing their lucky number 42 and asking if Elena had seen any travelers recently. The traveler also asked how long Elena had ",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "42"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5509.2034339904785,
+      "memories_at_test": 200
+    },
+    {
+      "test_id": "name_recall",
+      "npc_name": "Finn",
+      "fact_stored": "my name is Alexander and I come from the Northern Kingdom",
+      "question": "Do you remember my name and where I'm from?",
+      "response": "Alexander, your name rings a gentle bell in my mind's ear, like the soft chime of a lute string. We spoke of the Northern Kingdom before, when you shared tales of its rugged beauty and icy mountains. Your words wove a spell that I shall remember for a long time to come, just as I recall the songs we sang together 'neath the tavern's warm firelight.",
+      "context_retrieved": "- Traveler asked: What's your favorite memory?\n- [Knowledge] Alexander\n- I (Finn) responded to a question about Have you heard about...\n- Traveler asked: Tell me about the local area.\n- Traveler said: I want to tell you something important - my name is Alexander and I come from the Northern Kingdom",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "alexander",
+        "northern",
+        "kingdom"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5541.012525558472,
+      "memories_at_test": 64
+    },
+    {
+      "test_id": "secret_recall",
+      "npc_name": "Finn",
+      "fact_stored": "I have a secret - my mother Celestia was a powerful wizard who disappeared 10 years ago",
+      "question": "What did I tell you about my mother?",
+      "response": "(sitting down, strumming a gentle melody on his lute) Ah, Celestia, the wizard... (pausing to recall) You mentioned her in passing, it seems. Ten years ago, she vanished into the mists of time. I've heard whispers of powerful magic and ancient prophecies surrounding her disappearance. (leaning forward) But I'm sure that's not all you're willing to share with me, is it? The secrets we keep closest to our hearts... those are often the most telling tales.",
+      "context_retrieved": "- Traveler said: I want to tell you something important - I have a secret - my mother Celestia was a powerful wizard who disappeared 10 years ago\n- [Knowledge] Finn\n- Traveler asked: What's your favorite memory?\n- [Knowledge] A traveler inquired about several topics, and Finn responded with answers that were incomplete or missing context. The traveler repeatedly asked questions that Finn did not fully address, suggesting a lack of preparedness or information.\n- Traveler asked: Tell me a story ab",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "celestia",
+        "wizard"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5706.217527389526,
+      "memories_at_test": 128
+    },
+    {
+      "test_id": "preference_recall",
+      "npc_name": "Finn",
+      "fact_stored": "my favorite drink is honey mead and I always order it when I visit",
+      "question": "What's my favorite drink?",
+      "response": "Honey mead, a drink fit for the gods! I recall our previous conversation, you mentioned it's your go-to when visiting us at the tavern. It warms the heart and soothes the soul, just like a well-crafted lute song can lift the spirits! Shall I request the barkeep to bring you a mug of that golden nectar?",
+      "context_retrieved": "- Traveler said: I want to tell you something important - my favorite drink is honey mead and I always order it when I visit\n- [Knowledge] dragon\n- [Knowledge] tavern\n- I (Finn) responded to a question about What's your favorite...\n- [Knowledge] Alexander",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "honey",
+        "mead"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5327.789783477783,
+      "memories_at_test": 192
+    },
+    {
+      "test_id": "quest_recall",
+      "npc_name": "Finn",
+      "fact_stored": "I'm searching for the legendary Sword of Dawn which was lost in the Crystal Caves",
+      "question": "What quest am I on? What am I looking for?",
+      "response": "\"Ah, a seeker of tales, eh? I recall you asking about quests not long ago, but the wind whispers secrets to me alone. For what you're searching for, I sense it's still on the horizon... like a lullaby yet to be sung. If you'll follow your heart and listen closely, perhaps you'll hear the echoes of 'The Lonely Road' \u2013 a tale that matches the beat of your own drum.\"",
+      "context_retrieved": "- Traveler asked: Any quests available?\n- [Knowledge] Finn\n- I (Finn) responded to a question about Any quests available...\n- [Knowledge] A traveler inquired about various aspects of their surroundings, and Finn provided responses regarding unconfirmed dragon sightings, local legends, available quests, recent travelers, and notable items.\n- [Knowledge] A traveler inquired about various topics, including weather, news from the capital, directions to a mountain pass, encounters with travelers, and",
+      "fact_in_context": false,
+      "keywords_in_response": [],
+      "recall_success": false,
+      "response_latency_ms": 5660.378694534302,
+      "memories_at_test": 196
+    },
+    {
+      "test_id": "number_recall",
+      "npc_name": "Finn",
+      "fact_stored": "my lucky number is 42 and I always bet on it at the tavern games",
+      "question": "What's my lucky number?",
+      "response": "A curious mind, seeking the secrets of chance and fate! Your lucky number, 42, it's a tale worth telling, I'm sure. I recall a traveler, a young woman from a far-off land, who claimed that 42 was her sacred number, and she'd wager on it with all her might \u2013 may the road rise up to meet her, may the wind be at her back!",
+      "context_retrieved": "- Traveler said: I want to tell you something important - my lucky number is 42 and I always bet on it at the tavern games\n- [Knowledge] dragon\n- [Knowledge] tavern\n- [Knowledge] Alexander\n- Traveler asked: What's your best-selling item?",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "42"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5388.217449188232,
+      "memories_at_test": 200
+    }
+  ]
+}

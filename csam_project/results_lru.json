@@ -1,0 +1,137 @@
+{
+  "config": {
+    "num_npcs": 1,
+    "memories_before_test": 50,
+    "forget_threshold": 200,
+    "forgetting_strategy": "lru",
+    "use_llm": true,
+    "llm_model": "llama3.2:3b",
+    "run_consolidation": true,
+    "seed": 42
+  },
+  "timestamp": "2026-01-03T13:15:00.859647",
+  "total_tests": 5,
+  "passed_tests": 4,
+  "recall_accuracy": 0.8,
+  "avg_response_latency_ms": 5178.887701034546,
+  "avg_memories_at_test": 176.0,
+  "summary": {
+    "by_test_case": {
+      "name_recall": {
+        "passed": 1,
+        "total": 1,
+        "accuracy": 1.0
+      },
+      "secret_recall": {
+        "passed": 1,
+        "total": 1,
+        "accuracy": 1.0
+      },
+      "preference_recall": {
+        "passed": 1,
+        "total": 1,
+        "accuracy": 1.0
+      },
+      "quest_recall": {
+        "passed": 0,
+        "total": 1,
+        "accuracy": 0.0
+      },
+      "number_recall": {
+        "passed": 1,
+        "total": 1,
+        "accuracy": 1.0
+      }
+    },
+    "by_npc": {
+      "Greta": {
+        "passed": 4,
+        "total": 5,
+        "accuracy": 0.8,
+        "final_memories": 200,
+        "l3_nodes": 60,
+        "consolidated_ratio": 0.97
+      }
+    }
+  },
+  "test_results": [
+    {
+      "test_id": "name_recall",
+      "npc_name": "Greta",
+      "fact_stored": "my name is Alexander and I come from the Northern Kingdom",
+      "question": "Do you remember my name and where I'm from?",
+      "response": "Alexander, my lad! You're still on our good books, then? *wink* Of course, I remember your name and that you hail from the Northern Kingdom. We've had some... lively conversations about the wars, haven't we? *leans in* What's on your mind now?",
+      "context_retrieved": "- Traveler asked: What's your favorite memory?\n- [Knowledge] Greta\n- Traveler said: I want to tell you something important - my name is Alexander and I come from the Northern Kingdom\n- [Knowledge] A traveler repeatedly asked Greta a series of questions, and she provided responses in the same format (\"Do you know any good...\", \"What's your best-selling item?\", etc.), suggesting a repetitive or scripted interaction.\n- Traveler asked: Tell me about the local area.",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "alexander",
+        "northern",
+        "kingdom"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5116.93263053894,
+      "memories_at_test": 104
+    },
+    {
+      "test_id": "secret_recall",
+      "npc_name": "Greta",
+      "fact_stored": "I have a secret - my mother Celestia was a powerful wizard who disappeared 10 years ago",
+      "question": "What did I tell you about my mother?",
+      "response": "(laughs warmly) Ah, Luminous one! You told me all about your mother Celestia, how she was a powerful wizard who vanished 10 years ago. That's the story that caught my attention, and I've been wondering what became of her ever since. Did you find out anything new?",
+      "context_retrieved": "- I (Greta) responded to a question about Tell me a story abou...\n- [Knowledge] capital\n- Traveler said: I want to tell you something important - I have a secret - my mother Celestia was a powerful wizard who disappeared 10 years ago\n- [Knowledge] A traveler repeatedly asked Greta \"What's your favorite memory?\" and she provided an inconsistent response. The conversation also revealed that the traveler was seeking recommendations on how to navigate a mountain pass and inquiring about Greta's work",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "celestia",
+        "wizard",
+        "mother"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5128.1843185424805,
+      "memories_at_test": 188
+    },
+    {
+      "test_id": "preference_recall",
+      "npc_name": "Greta",
+      "fact_stored": "my favorite drink is honey mead and I always order it when I visit",
+      "question": "What's my favorite drink?",
+      "response": "Honey mead, comin' right up! I recall you orderin' it last time you visited, Celestia. You said it was your go-to drink when you're feelin' like treatin' yourself, and I've got a special batch set aside just for you \u2013 on the house, this time.",
+      "context_retrieved": "- Traveler said: I want to tell you something important - my favorite drink is honey mead and I always order it when I visit\n- [Knowledge] Celestia\n- Traveler asked: What's your favorite memory?\n- [Knowledge] Greta\n- [Knowledge] Traveler",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "honey",
+        "mead"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 5303.7378787994385,
+      "memories_at_test": 192
+    },
+    {
+      "test_id": "quest_recall",
+      "npc_name": "Greta",
+      "fact_stored": "I'm searching for the legendary Sword of Dawn which was lost in the Crystal Caves",
+      "question": "What quest am I on? What am I looking for?",
+      "response": "(laughs) Ah, you're a bit of a regular, aren't ya? You came in here last week, too, if I recall. Let me think... (taps chin) You were askin' about quests and whatnot, but I didn't catch the specifics. You might've mentioned somethin' about a rare herb or a mysterious energy signature? (smiling) Sorry, can't quite put my finger on it. What do you remember?",
+      "context_retrieved": "- Traveler asked: Any quests available?\n- [Knowledge] Greta\n- [Knowledge] A traveler inquired about the local guild, and Greta provided responses to questions about available quests, best-selling items, and her employment duration. The traveler repeated the last two questions, indicating a pattern of seeking repetition and confirmation.\n- [Knowledge] A traveler inquired about various topics, including available quests, dragon sightings, rumors, and personal memories. The responses provided infor",
+      "fact_in_context": false,
+      "keywords_in_response": [],
+      "recall_success": false,
+      "response_latency_ms": 5569.629430770874,
+      "memories_at_test": 196
+    },
+    {
+      "test_id": "number_recall",
+      "npc_name": "Greta",
+      "fact_stored": "my lucky number is 42 and I always bet on it at the tavern games",
+      "question": "What's my lucky number?",
+      "response": "You've got to be kiddin' me! I remember you tellin' me that 42's your lucky charm, traveler! You're on a hot streak, ain't ya?",
+      "context_retrieved": "- Traveler said: I want to tell you something important - my lucky number is 42 and I always bet on it at the tavern games\n- [Knowledge] Greta\n- [Knowledge] 42\n- [Knowledge] Tavern\n- [Knowledge] A traveler expressed interest in the local area, inquired about opinions on the king and their favorite drink, and mentioned searching for the legendary Sword of Dawn. The conversation also included a request for a personal story about the place.",
+      "fact_in_context": true,
+      "keywords_in_response": [
+        "42"
+      ],
+      "recall_success": true,
+      "response_latency_ms": 4775.954246520996,
+      "memories_at_test": 200
+    }
+  ]
+}
