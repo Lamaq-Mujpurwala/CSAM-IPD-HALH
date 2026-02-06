@@ -2,36 +2,54 @@
 # Core dependencies
 
 # Vector search
-hnswlib>=0.8.0
+# hnswlib  # Optional: requires C++ build tools on Windows, using FAISS instead
 
 # Embeddings
-sentence-transformers>=2.2.0
+sentence-transformers
 
 # Graph storage
-networkx>=3.0
+networkx
 
 # Database
-sqlalchemy>=2.0.0
+sqlalchemy
 
-# HTTP API
-flask>=3.0.0
-flask-cors>=4.0.0
+# HTTP API (async-ready)
+fastapi
+uvicorn[standard]  # ASGI server for FastAPI
 
 # LLM client
-requests>=2.31.0
+requests
 
 # Scientific computing
-numpy>=1.24.0
-scipy>=1.10.0
+numpy
+scipy
 
 # Evaluation
-scikit-learn>=1.3.0
-pandas>=2.0.0
-matplotlib>=3.7.0
+scikit-learn
+pandas
+matplotlib
 
 # Testing
-pytest>=7.0.0
+pytest
+pytest-asyncio
+
+# ============================================
+# GPU Acceleration & Async (New)
+# ============================================
+# Deep learning for GPU-accelerated embeddings
+torch
+# Note: For GPU support, install with CUDA:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu118  (CUDA 11.8)
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121  (CUDA 12.1)
+# The same 'torch' package works for both CPU and GPU
+
+# FAISS for vector search (CPU version for Python 3.11+ compatibility)
+# GPU version requires conda: conda install -c pytorch faiss-gpu
+faiss-cpu
+
+# Async HTTP client for concurrent LLM requests
+aiohttp
 
 # Utilities
-python-dotenv>=1.0.0
-tqdm>=4.65.0
+python-dotenv
+tqdm

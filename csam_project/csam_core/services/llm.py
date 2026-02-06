@@ -28,7 +28,7 @@ class LLMService:
     def __init__(
         self, 
         base_url: str = "http://localhost:11434",
-        model: str = "llama3.2:3b",
+        model: str = "llama3.2:1b",
         timeout: int = 60
     ):
         """
@@ -36,7 +36,7 @@ class LLMService:
         
         Args:
             base_url: Ollama server URL (default localhost:11434)
-            model: Model name to use (default llama3.2:3b for speed)
+            model: Model name to use (default llama3.2:1b for max speed)
             timeout: Request timeout in seconds
         """
         self.base_url = base_url.rstrip('/')
@@ -208,7 +208,7 @@ _default_service = None
 
 def get_llm_service(
     base_url: str = "http://localhost:11434",
-    model: str = "llama3.2:3b"
+    model: str = "llama3.2:1b"
 ) -> LLMService:
     """Get the default LLM service instance."""
     global _default_service

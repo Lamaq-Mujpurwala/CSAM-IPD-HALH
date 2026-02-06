@@ -128,10 +128,10 @@ class NPC:
         self.conversation_count = 0
         self.total_response_time_ms = 0.0
     
-    def add_memory(self, text: str, importance: float = 0.5) -> str:
+    def add_memory(self, text: str, importance: float = 0.5, metadata: Optional[Dict[str, Any]] = None) -> str:
         """Add a memory to this NPC's memory system."""
         embedding = self.embedding_service.encode(text)
-        memory_id = self.memory_repo.add(text, embedding, importance)
+        memory_id = self.memory_repo.add(text, embedding, importance, metadata=metadata)
         
         # Check if we need to forget
         if len(self.memory_repo) > self.forget_threshold:
@@ -160,10 +160,20 @@ class NPC:
         """Manually trigger consolidation."""
         return self.consolidation_pipeline.run_consolidation()
     
-    def retrieve_context(self, query: str, k: int = 5) -> str:
+    def retrieve_context(self, query: str, k: int = 5, player_name: Optional[str] = None) -> str:
         """Retrieve relevant context for a query."""
         query_embedding = self.embedding_service.encode(query)
-        result = self.retriever.retrieve(query_embedding, k=k)
+        
+        # Apply player filter if provided
+        if player_name:
+            # Temporarily filter L2 retrieval
+            metadata_filter = {"player_name": player_name}
+            l2_results = self.memory_repo.retrieve(query_embedding, k=k*2, metadata_filter=metadata_filter)
+            # Note: L3 filtering not implemented yet - would need graph metadata too
+            # For now, use hybrid retriever without filter
+            result = self.retriever.retrieve_sync(query_embedding, k=k)
+        else:
+            result = self.retriever.retrieve_sync(query_embedding, k=k)
         
         context_parts = []
         for item, score in result.final_results:
@@ -187,8 +197,8 @@ class NPC:
         """
         start_time = time.time()
         
-        # Step 1: Retrieve relevant context
-        context = self.retrieve_context(player_message, k=5)
+        # Step 1: Retrieve relevant context with player filtering
+        context = self.retrieve_context(player_message, k=5, player_name=player_name)
         
         # Step 2: Generate response
         if self.llm_service and self.llm_service.is_available():
@@ -209,15 +219,22 @@ Respond naturally as {self.personality.name}:"""
             # Fallback without LLM
             response = self._generate_fallback_response(player_message, context)
         
-        # Step 3: Save the interaction to memory
+        # Step 3: Save the interaction to memory with metadata
+        metadata = {
+            "player_name": player_name,
+            "npc_name": self.personality.name,
+            "timestamp": datetime.now().isoformat()
+        }
         # Save with higher importance for direct interactions
         self.add_memory(
             f"{player_name} said: {player_message}",
-            importance=0.7
+            importance=0.7,
+            metadata=metadata
         )
         self.add_memory(
             f"I ({self.personality.name}) responded: {response}",
-            importance=0.5
+            importance=0.5,
+            metadata=metadata
         )
         
         # Update stats

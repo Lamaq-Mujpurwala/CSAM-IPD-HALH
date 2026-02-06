@@ -166,7 +166,7 @@ class MemorySystemWithForgetting:
     def retrieve(self, query: str, k: int = 5) -> List[Tuple[Any, float]]:
         """Retrieve relevant memories for a query."""
         query_embedding = self.embedding_service.encode(query)
-        result = self.retriever.retrieve(query_embedding, k=k)
+        result = self.retriever.retrieve_sync(query_embedding, k=k)
         return result.final_results
     
     def get_context_for_question(self, question: str) -> str:

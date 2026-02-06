@@ -201,7 +201,8 @@ class MemoryRepository:
         self,
         query_embedding: np.ndarray,
         k: int = 5,
-        update_access: bool = True
+        update_access: bool = True,
+        metadata_filter: Optional[Dict[str, Any]] = None
     ) -> List[Tuple[Memory, float]]:
         """
         Retrieve the k most similar memories to the query.
@@ -212,6 +213,7 @@ class MemoryRepository:
             query_embedding: Query vector
             k: Number of results to return
             update_access: Whether to update access tracking
+            metadata_filter: Optional filter dict (e.g., {"player_name": "Bob"})
             
         Returns:
             List of (Memory, similarity_score) tuples, sorted by similarity
@@ -220,13 +222,13 @@ class MemoryRepository:
             return []
         
         # Limit k to available memories
-        k = min(k, len(self))
+        k_search = min(k * 3, len(self)) if metadata_filter else min(k, len(self))
         
         # HNSW search - returns (indices, distances)
         # For cosine space, distance = 1 - similarity
         indices, distances = self.index.knn_query(
             query_embedding.reshape(1, -1).astype(np.float32),
-            k=k
+            k=k_search
         )
         
         results = []
@@ -234,6 +236,16 @@ class MemoryRepository:
             memory_id = self._index_to_id.get(int(idx))
             if memory_id and memory_id in self._memories:
                 memory = self._memories[memory_id]
+                
+                # Apply metadata filter if provided
+                if metadata_filter:
+                    match = all(
+                        memory.metadata.get(key) == value
+                        for key, value in metadata_filter.items()
+                    )
+                    if not match:
+                        continue
+                
                 similarity = 1.0 - dist  # Convert distance to similarity
                 
                 if update_access:
