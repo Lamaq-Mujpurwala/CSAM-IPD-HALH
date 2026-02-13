@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-02-12T16:33:23.118401",
+  "benchmark": "locomo_multimodel",
+  "num_questions": 10,
+  "results": [
+    {
+      "model": "Llama 3.1 8B",
+      "provider": "groq",
+      "model_id": "llama-3.1-8b-instant",
+      "f1": 0.3244444444444444,
+      "bleu1": 0.3666666666666667,
+      "latency_ms": 1815.1563882827759,
+      "total_tokens": 5169
+    },
+    {
+      "model": "Llama 4 Scout 17B",
+      "provider": "groq",
+      "model_id": "meta-llama/llama-4-scout-17b-16e-instruct",
+      "f1": 0.36466666666666664,
+      "bleu1": 0.3588345864661654,
+      "latency_ms": 1814.1575813293457,
+      "total_tokens": 4969
+    },
+    {
+      "model": "Llama 3.3 70B",
+      "provider": "groq",
+      "model_id": "llama-3.3-70b-versatile",
+      "f1": 0.32857142857142857,
+      "bleu1": 0.35333333333333333,
+      "latency_ms": 1814.1170501708984,
+      "total_tokens": 5183
+    },
+    {
+      "model": "GPT OSS 120B",
+      "provider": "groq",
+      "model_id": "openai/gpt-oss-120b",
+      "f1": 0.1,
+      "bleu1": 0.1,
+      "latency_ms": 1847.6087808609009,
+      "total_tokens": 6822
+    }
+  ]
+}

@@ -1,1 +1,12 @@
 .venv
+__pycache__/
+*.pyc
+.env
+*.lock
+uv.lock
+.python-version
+_temp.md
+csam_project/benchmarks/cache/
+csam_project/benchmarks/data/
+csam_project/benchmarks/diagnostic_output.txt
+csam_project/benchmarks/run_output.txt

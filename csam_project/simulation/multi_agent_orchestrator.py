@@ -231,14 +231,14 @@ class MultiAgentOrchestrator:
             all_results.append(results)
             
             if verbose:
-                print(f"  ✓ Completed in {results.total_time_ms:.0f}ms")
+                print(f"  [OK] Completed in {results.total_time_ms:.0f}ms")
                 print(f"    Avg latency: {results.avg_latency_ms:.0f}ms")
                 print(f"    Throughput: {results.throughput:.2f} interactions/sec")
                 
                 # Show sample interactions
                 for interaction in results.interactions[:3]:  # First 3
                     print(
-                        f"      • {interaction.npc_name} ↔ {interaction.player_name}: "
+                        f"      • {interaction.npc_name} <-> {interaction.player_name}: "
                         f"{interaction.latency_ms:.0f}ms"
                     )
         

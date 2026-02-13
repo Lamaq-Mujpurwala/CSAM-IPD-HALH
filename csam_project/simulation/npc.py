@@ -20,6 +20,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
 from csam_core.memory_repository import MemoryRepository
+from csam_core.working_memory import WorkingMemoryCache
 from csam_core.knowledge_graph import KnowledgeGraph
 from csam_core.forgetting_engine import ConsolidationAwareForgetting
 from csam_core.consolidation_tracker import ConsolidationTracker
@@ -96,6 +97,9 @@ class NPC:
             embedding_dim=embedding_service.dimension,
             max_memories=max_memories
         )
+        # Initialize L1 Working Memory
+        self.working_memory = WorkingMemoryCache(max_size=20)
+        
         self.knowledge_graph = KnowledgeGraph(
             db_path=":memory:",
             embedding_dim=embedding_service.dimension
@@ -133,6 +137,10 @@ class NPC:
         embedding = self.embedding_service.encode(text)
         memory_id = self.memory_repo.add(text, embedding, importance, metadata=metadata)
         
+        # Add to L1 Working Memory
+        player_name = metadata.get("player_name", "Unknown") if metadata else "Unknown"
+        self.working_memory.add(text, player_name=player_name, metadata=metadata, importance=importance)
+        
         # Check if we need to forget
         if len(self.memory_repo) > self.forget_threshold:
             self._run_forgetting()
@@ -160,22 +168,49 @@ class NPC:
         """Manually trigger consolidation."""
         return self.consolidation_pipeline.run_consolidation()
     
-    def retrieve_context(self, query: str, k: int = 5, player_name: Optional[str] = None) -> str:
-        """Retrieve relevant context for a query."""
+    def retrieve_context(self, query: str, k: int = 5, player_name: Optional[str] = None, mode: str = "chat") -> str:
+        """Retrieve relevant context for a query.
+        
+        Args:
+            query: The query text
+            k: Number of results to return
+            player_name: Optional player name for filtering
+            mode: 'chat' uses hybrid retriever + L1; 'qa' uses direct L2 with higher k for accuracy
+        """
         query_embedding = self.embedding_service.encode(query)
         
-        # Apply player filter if provided
-        if player_name:
-            # Temporarily filter L2 retrieval
-            metadata_filter = {"player_name": player_name}
-            l2_results = self.memory_repo.retrieve(query_embedding, k=k*2, metadata_filter=metadata_filter)
-            # Note: L3 filtering not implemented yet - would need graph metadata too
-            # For now, use hybrid retriever without filter
-            result = self.retriever.retrieve_sync(query_embedding, k=k)
-        else:
-            result = self.retriever.retrieve_sync(query_embedding, k=k)
+        if mode == "qa":
+            # QA mode: direct L2 retrieval with high k, no MMR, no L1 noise
+            # This matches the benchmark pipeline that achieves our published results
+            l2_results = self.memory_repo.retrieve(query_embedding, k=k)
+            
+            context_parts = ["Relevant Memories:"]
+            for memory, score in l2_results:
+                context_parts.append(f"- {memory.text}")
+            
+            # Also check L3 knowledge graph
+            l3_results = self.knowledge_graph.query_by_embedding(query_embedding, k=3)
+            if l3_results:
+                for node, score in l3_results:
+                    context_parts.append(f"- [Knowledge] {node.content}")
+            
+            return "\n".join(context_parts) if len(context_parts) > 1 else "No relevant memories."
+        
+        # Chat mode: hybrid retriever with L1 context (for natural conversation)
+        result = self.retriever.retrieve_sync(query_embedding, k=k)
         
         context_parts = []
+        
+        # 1. Add L1 Working Memory (Recent Context)
+        if player_name:
+            recent_items = self.working_memory.get_recent(player_name, k=3)
+            if recent_items:
+                context_parts.append("Recent Coversation:")
+                for item in recent_items:
+                    context_parts.append(f"- {item.text}")
+                context_parts.append("\nRelevant Memories:")
+        
+        # 2. Add L2/L3 Results
         for item, score in result.final_results:
             if hasattr(item, 'text'):  # Memory
                 context_parts.append(f"- {item.text}")
@@ -184,36 +219,34 @@ class NPC:
         
         return "\n".join(context_parts) if context_parts else "No relevant memories."
     
-    def respond(self, player_message: str, player_name: str = "Player") -> Dict[str, Any]:
+    def respond(self, player_message: str, player_name: str = "Player", mode: str = "chat") -> Dict[str, Any]:
         """
-        Generate a response to the player.
+        Generate a response to the player's message.
         
         Args:
-            player_message: What the player said
-            player_name: Player's name (if known)
+            player_message: The player's input text
+            player_name: Name of the player (for memory scoping)
+            mode: Interaction mode - 'chat' (default) or 'qa' (concise fact retrieval)
             
         Returns:
             Dictionary with response and metadata
         """
         start_time = time.time()
         
-        # Step 1: Retrieve relevant context with player filtering
-        context = self.retrieve_context(player_message, k=5, player_name=player_name)
+        # Step 1: Retrieve relevant context
+        # QA mode uses direct L2 retrieval with k=20 (matches benchmark pipeline)
+        # Chat mode uses hybrid retriever with k=5 (natural conversation)
+        retrieval_k = 20 if mode == "qa" else 5
+        context = self.retrieve_context(player_message, k=retrieval_k, player_name=player_name, mode=mode)
         
         # Step 2: Generate response
         if self.llm_service and self.llm_service.is_available():
-            prompt = f"""Based on your memories and knowledge:
-{context}
-
-{player_name} says: "{player_message}"
-
-Respond naturally as {self.personality.name}:"""
-            
-            response = self.llm_service.generate(
-                prompt,
-                system_prompt=self.personality.system_prompt,
-                temperature=0.7,
-                max_tokens=150
+            # Step 3: Generate Response
+            response = self.llm_service.generate_response(
+                context=context,
+                user_message=player_message,
+                persona=self.personality.system_prompt if mode == "chat" else None,
+                mode=mode
             )
         else:
             # Fallback without LLM
@@ -285,7 +318,9 @@ Respond naturally as {self.personality.name}:"""
             "consolidation_ratio": consolidated / len(self.memory_repo) if len(self.memory_repo) > 0 else 0,
             "l3_nodes": len(self.knowledge_graph),
             "conversation_count": self.conversation_count,
-            "avg_response_time_ms": self.total_response_time_ms / max(1, self.conversation_count)
+            "conversation_count": self.conversation_count,
+            "avg_response_time_ms": self.total_response_time_ms / max(1, self.conversation_count),
+            "l1_items": len(self.working_memory)
         }
 
 

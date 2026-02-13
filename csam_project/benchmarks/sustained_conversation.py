@@ -166,7 +166,7 @@ class AsyncNPC:
         l2_l3_context = l2_context + l3_context
         
         # 3. Generate response with separated L1 / (L2+L3) context
-        # L1 → System Prompt (recent working memory)
+        # L1 -> System Prompt (recent working memory)
         enhanced_system = f"""{self.personality.system_prompt}
 
 RECENT WORKING MEMORY:
@@ -174,7 +174,7 @@ RECENT WORKING MEMORY:
 
 Use this to maintain continuity."""
         
-        # L2+L3 → User Message (long-term memories + knowledge)
+        # L2+L3 -> User Message (long-term memories + knowledge)
         context_section = f"""
 Relevant memories and knowledge:
 {chr(10).join(l2_l3_context)}
@@ -293,7 +293,7 @@ class SustainedConversationBenchmark:
         )
         
         if verbose:
-            print(f"\n[Pair {pair_id}] {npc_a.personality.name} ↔ {npc_b.personality.name}")
+            print(f"\n[Pair {pair_id}] {npc_a.personality.name} <-> {npc_b.personality.name}")
         
         # Conversation starters
         topics = [
@@ -360,7 +360,7 @@ class SustainedConversationBenchmark:
         if verbose:
             avg_mem = np.mean(metrics.memory_latencies_ms)
             avg_llm = np.mean(metrics.llm_latencies_ms)
-            print(f"  ✓ Completed {turns} turns in {total_time/1000:.1f}s")
+            print(f"  [OK] Completed {turns} turns in {total_time/1000:.1f}s")
             print(f"    Avg Memory System: {avg_mem:.0f}ms, Avg LLM: {avg_llm:.0f}ms")
         
         return metrics
@@ -706,7 +706,7 @@ class SustainedConversationBenchmark:
         
         if save_path:
             plt.savefig(save_path, dpi=300, bbox_inches='tight')
-            print(f"\n✓ Research plots saved: {save_path}")
+            print(f"\n[OK] Research plots saved: {save_path}")
         
         plt.close()
 
@@ -743,7 +743,7 @@ async def main():
     plot_path = benchmark.results_dir / f"sustained_{benchmark.timestamp}.png"
     benchmark.plot_results(results, save_path=str(plot_path))
     
-    print(f"\n✓ Benchmark complete!")
+    print(f"\n[OK] Benchmark complete!")
     print(f"  Results saved in: {benchmark.results_dir}")
 
 

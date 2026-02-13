@@ -116,7 +116,7 @@ class PersistentFAISSRepository(FAISSGPUMemoryRepository):
                     self._index_to_id = data['index_to_id']
                     self._next_index = data['next_index']
             
-            logger.info(f"✓ Loaded {len(self._memories)} memories from disk")
+            logger.info(f"[OK] Loaded {len(self._memories)} memories from disk")
             
         except Exception as e:
             logger.error(f"Error loading from disk: {e}")
@@ -161,7 +161,7 @@ class PersistentFAISSRepository(FAISSGPUMemoryRepository):
                     pickle.dump(data, f)
                 logger.debug(f"Saved metadata to {self.metadata_path}")
             
-            logger.info(f"✓ Saved {len(self._memories)} memories to disk")
+            logger.info(f"[OK] Saved {len(self._memories)} memories to disk")
             
         except Exception as e:
             logger.error(f"Error saving to disk: {e}")

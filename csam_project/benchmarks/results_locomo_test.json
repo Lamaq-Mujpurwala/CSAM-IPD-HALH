@@ -1,0 +1,19 @@
+{
+  "dataset": "locomo10.json",
+  "conversation_id": 0,
+  "avg_f1": 0.02222222222222222,
+  "avg_latency_ms": 8116.661477088928,
+  "total_turns": 419,
+  "metrics": [
+    0,
+    0,
+    0.2222222222222222,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ]
+}

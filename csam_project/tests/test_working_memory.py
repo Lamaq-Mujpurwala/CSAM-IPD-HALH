@@ -41,7 +41,7 @@ def test_working_memory():
             metadata={"player_class": "Warrior"},
             importance=0.7
         )
-        print(f"  ✓ Added: {text}")
+        print(f"  [OK] Added: {text}")
     
     # Test 2: Retrieve recent for Bob
     print("\n2. Retrieving recent items for Bob (k=3)...")
@@ -115,9 +115,9 @@ def test_working_memory():
     print(f"  Total cached items: {len(cache)}")
     print(f"  Players tracked: {stats['total_players']}")
     print(f"  Hit rate: {stats['hit_rate']:.1%}")
-    print(f"  LRU eviction: {'✅ Working' if len(final_bob) == 5 else '❌ Failed'}")
-    print(f"  Player isolation: {'✅ Working' if (bob_only and alice_only) else '❌ Failed'}")
-    print("\n✅ L1 Working Memory tests complete!")
+    print(f"  LRU eviction: {'[OK] Working' if len(final_bob) == 5 else '[FAIL] Failed'}")
+    print(f"  Player isolation: {'[OK] Working' if (bob_only and alice_only) else '[FAIL] Failed'}")
+    print("\n[OK] L1 Working Memory tests complete!")
     print("=" * 60)
 
 

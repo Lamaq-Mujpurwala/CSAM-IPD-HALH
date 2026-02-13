@@ -47,7 +47,8 @@ class ConsolidationPipeline:
         llm_service: Optional[LLMService] = None,
         min_memories_per_batch: int = 3,
         max_memories_per_batch: int = 10,
-        consolidation_threshold_hours: float = 1.0
+        consolidation_threshold_hours: float = 1.0,
+        use_llm_for_consolidation: bool = True
     ):
         """
         Initialize the consolidation pipeline.
@@ -61,6 +62,7 @@ class ConsolidationPipeline:
             min_memories_per_batch: Minimum memories to trigger consolidation
             max_memories_per_batch: Maximum memories per consolidation batch
             consolidation_threshold_hours: Minimum age for memories to consolidate
+            use_llm_for_consolidation: If False, skip LLM calls (summary/entity) for speed
         """
         self.memory_repo = memory_repository
         self.knowledge_graph = knowledge_graph
@@ -70,6 +72,7 @@ class ConsolidationPipeline:
         self.min_memories_per_batch = min_memories_per_batch
         self.max_memories_per_batch = max_memories_per_batch
         self.consolidation_threshold_hours = consolidation_threshold_hours
+        self.use_llm_for_consolidation = use_llm_for_consolidation
     
     def should_consolidate(self) -> bool:
         """Check if consolidation should run."""
@@ -202,8 +205,8 @@ class ConsolidationPipeline:
             memory.mark_consolidated(summary_node_id)
         result["memories"] = len(memories)
         
-        # Extract entities (if LLM available)
-        if self.llm_service and self.llm_service.is_available():
+        # Extract entities (if LLM available AND enabled)
+        if self.use_llm_for_consolidation and self.llm_service and self.llm_service.is_available():
             entities_result = self._extract_and_store_entities(
                 memory_texts, 
                 summary_node_id
@@ -219,8 +222,8 @@ class ConsolidationPipeline:
     def _generate_summary(self, memory_texts: List[str]) -> str:
         """Generate a summary from memory texts."""
         
-        # Use LLM if available
-        if self.llm_service and self.llm_service.is_available():
+        # Use LLM if available AND enabled
+        if self.use_llm_for_consolidation and self.llm_service and self.llm_service.is_available():
             return self.llm_service.summarize(memory_texts)
         
         # Fallback: simple concatenation-based summary

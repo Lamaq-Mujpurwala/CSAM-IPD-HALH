@@ -183,13 +183,13 @@ class EndToEndBenchmark:
         print("Initializing services...")
         self.embedding_service = EmbeddingService()
         _ = self.embedding_service.dimension
-        print(f"  ✓ Embedding model loaded")
+        print(f"  [OK] Embedding model loaded")
         
         self.llm_service = None
         if config.use_llm:
             self.llm_service = LLMService(model=config.llm_model)
             if self.llm_service.is_available():
-                print(f"  ✓ LLM connected ({config.llm_model})")
+                print(f"  [OK] LLM connected ({config.llm_model})")
             else:
                 print(f"  ✗ LLM not available, using fallback")
                 self.llm_service = None
@@ -240,7 +240,7 @@ class EndToEndBenchmark:
             # Override forgetting strategy
             npc.forgetting_strategy = self._get_forgetting_strategy()
             self.npcs.append(npc)
-            print(f"  ✓ {personality.name} ({personality.role})")
+            print(f"  [OK] {personality.name} ({personality.role})")
     
     def run_test_case(self, npc: NPC, test_case: TestCase, player_name: str = "Traveler") -> TestResult:
         """Run a single test case on an NPC."""
@@ -314,7 +314,7 @@ class EndToEndBenchmark:
                 result = self.run_test_case(npc, test_case)
                 all_results.append(result)
                 
-                status = "✓ PASS" if result.recall_success else "✗ FAIL"
+                status = "[OK] PASS" if result.recall_success else "✗ FAIL"
                 print(f"    {status} | Keywords found: {result.keywords_in_response}")
                 print(f"    Latency: {result.response_latency_ms:.0f}ms | Memories: {result.memories_at_test}")
                 
@@ -383,7 +383,7 @@ class EndToEndBenchmark:
         print("\n By Test Case:")
         print("-" * 50)
         for tc_id, tc_stats in results.summary["by_test_case"].items():
-            status = "✓" if tc_stats["accuracy"] >= 0.5 else "✗"
+            status = "[OK]" if tc_stats["accuracy"] >= 0.5 else "✗"
             print(f"  {status} {tc_id}: {tc_stats['accuracy']:.0%} ({tc_stats['passed']}/{tc_stats['total']})")
         
         print("\n By NPC:")

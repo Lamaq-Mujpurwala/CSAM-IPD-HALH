@@ -24,6 +24,7 @@ import time
 import random
 import argparse
 from typing import Dict, List, Optional
+from datetime import datetime
 
 # Add project root
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -88,7 +89,7 @@ class TavernDemo:
         print("\nLoading embedding model...")
         self.embedding_service = EmbeddingService()
         _ = self.embedding_service.dimension  # Force load
-        print(f"  ✓ Loaded (dim={self.embedding_service.dimension})")
+        print(f"  [OK] Loaded (dim={self.embedding_service.dimension})")
         
         # Initialize LLM
         self.llm_service = None
@@ -96,7 +97,7 @@ class TavernDemo:
             print("\nConnecting to Ollama...")
             self.llm_service = LLMService(model=llm_model)
             if self.llm_service.is_available():
-                print(f"  ✓ Connected (model={llm_model})")
+                print(f"  [OK] Connected (model={llm_model})")
             else:
                 print("  ✗ Ollama not available, using fallback responses")
                 self.llm_service = None
@@ -113,9 +114,9 @@ class TavernDemo:
                 forget_threshold=500
             )
             self.npcs[personality.name.lower()] = npc
-            print(f"  ✓ {personality.name} ({personality.role})")
+            print(f"  [OK] {personality.name} ({personality.role})")
         
-        print(f"\n✓ Demo ready! {len(self.npcs)} NPCs loaded.")
+        print(f"\n[OK] Demo ready! {len(self.npcs)} NPCs loaded.")
     
     def get_npc(self, name: str) -> Optional[NPC]:
         """Get NPC by name (case insensitive)."""
@@ -139,7 +140,9 @@ class TavernDemo:
         Skip ahead N dialogues with random conversations.
         
         This fills the NPC's memory with random interactions to test
-        long-term memory recall.
+        long-term memory recall. Uses fast mode: memories are stored 
+        directly (embedding only) without LLM response generation,
+        then consolidation runs once at the end.
         """
         npc = self.get_npc(npc_name)
         if not npc:
@@ -147,27 +150,62 @@ class TavernDemo:
         
         if verbose:
             print(f"\nSkipping {count} dialogues with {npc.personality.name}...")
+            print(f"  (fast mode: embedding-only, no LLM calls per turn)")
         
         start_time = time.time()
         
+        # Save the original consolidation trigger interval
+        original_conv_count = npc.conversation_count
+        
         for i in range(count):
-            # Random dialogue
+            # Random dialogue -- store directly as memories (no LLM call)
             message = random.choice(RANDOM_DIALOGUES)
-            npc.respond(message, player_name=self.player_name)
+            metadata = {
+                "player_name": self.player_name,
+                "npc_name": npc.personality.name,
+                "timestamp": datetime.now().isoformat()
+            }
+            # Store player message
+            npc.add_memory(
+                f"{self.player_name} said: {message}",
+                importance=0.5,
+                metadata=metadata
+            )
+            # Store a simple NPC acknowledgment (no LLM generation)
+            npc.add_memory(
+                f"I ({npc.personality.name}) responded to: {message[:60]}",
+                importance=0.3,
+                metadata=metadata
+            )
+            npc.conversation_count += 1
             
             # Progress indicator
             if verbose and (i + 1) % 10 == 0:
-                print(f"  ... {i + 1}/{count} dialogues")
+                elapsed_so_far = time.time() - start_time
+                print(f"  ... {i + 1}/{count} dialogues ({elapsed_so_far:.1f}s)")
         
         elapsed = time.time() - start_time
         
-        # Force consolidation after skip
+        if verbose:
+            print(f"  Memory fill done in {elapsed:.1f}s. Running consolidation...")
+        
+        # Use fast consolidation: no LLM calls, larger batches
+        # Save original settings
+        orig_use_llm = npc.consolidation_pipeline.use_llm_for_consolidation
+        orig_max_batch = npc.consolidation_pipeline.max_memories_per_batch
+        npc.consolidation_pipeline.use_llm_for_consolidation = False
+        npc.consolidation_pipeline.max_memories_per_batch = 50
+        
         consolidation_result = npc.run_consolidation()
+        
+        # Restore original settings for future real conversations
+        npc.consolidation_pipeline.use_llm_for_consolidation = orig_use_llm
+        npc.consolidation_pipeline.max_memories_per_batch = orig_max_batch
         
         stats = npc.get_stats()
         
         if verbose:
-            print(f"  ✓ Completed in {elapsed:.1f}s")
+            print(f"  [OK] Completed in {elapsed:.1f}s")
             print(f"  Memories: {stats['memory_count']}, Consolidated: {stats['consolidation_ratio']:.1%}")
         
         return {
@@ -187,13 +225,19 @@ class TavernDemo:
         if not npc:
             return {"error": f"Unknown NPC: {npc_name}"}
         
-        # Store with high importance
-        full_message = f"{self.player_name} said: {fact}"
-        npc.add_memory(full_message, importance=0.95)  # High importance
+        metadata = {
+            "player_name": self.player_name,
+            "npc_name": npc.personality.name,
+            "timestamp": datetime.now().isoformat()
+        }
         
-        # Also have the NPC "acknowledge" it
+        # Store the fact itself with very high importance
+        full_message = f"{self.player_name} said: {fact}"
+        npc.add_memory(full_message, importance=0.95, metadata=metadata)
+        
+        # Also store the NPC acknowledgment
         acknowledgment = f"I will remember that {fact}"
-        npc.add_memory(f"I ({npc.personality.name}) thought: {acknowledgment}", importance=0.9)
+        npc.add_memory(f"I ({npc.personality.name}) thought: {acknowledgment}", importance=0.9, metadata=metadata)
         
         return {
             "stored": True,
@@ -205,8 +249,41 @@ class TavernDemo:
     def recall(self, npc_name: str, question: str) -> Dict:
         """
         Ask an NPC about something they should remember.
+        
+        Uses QA mode: direct L2 retrieval (k=20), strict QA prompt,
+        no MMR diversity penalty, no L1 noise. Does NOT save the 
+        question as a memory (prevents recall pollution).
+        This matches the benchmark pipeline that achieves published results.
         """
-        return self.talk(npc_name, question)
+        npc = self.get_npc(npc_name)
+        if not npc:
+            return {"error": f"Unknown NPC: {npc_name}. Available: {self.list_npcs()}"}
+        
+        start_time = time.time()
+        
+        # Use QA mode for accurate retrieval (matches benchmark pipeline)
+        context = npc.retrieve_context(question, k=20, player_name=self.player_name, mode="qa")
+        
+        # Generate response with strict QA prompt (no persona fluff)
+        if npc.llm_service and npc.llm_service.is_available():
+            response = npc.llm_service.generate_response(
+                context=context,
+                user_message=question,
+                persona=None,  # No persona -- strict QA
+                mode="qa"
+            )
+        else:
+            response = npc._generate_fallback_response(question, context)
+        
+        elapsed_ms = (time.time() - start_time) * 1000
+        
+        # Do NOT save the question/answer as memory (prevents pollution)
+        return {
+            "response": response,
+            "latency_ms": elapsed_ms,
+            "context_used": context,
+            "mode": "qa"
+        }
     
     def get_stats(self, npc_name: Optional[str] = None) -> Dict:
         """Get stats for one or all NPCs."""
@@ -300,7 +377,7 @@ class TavernDemo:
                 if "error" in result:
                     print(f"Error: {result['error']}")
                 else:
-                    print(f"✓ Stored fact with {result['npc']} (high importance)")
+                    print(f"[OK] Stored fact with {result['npc']} (high importance)")
                     print(f"  \"{result['fact']}\"")
             
             # ================== RECALL ==================
@@ -352,7 +429,7 @@ class TavernDemo:
                 else:
                     print(f"\nRecent memories ({npc_name}):")
                     for i, m in enumerate(memories, 1):
-                        status = "✓" if m['consolidated'] else " "
+                        status = "[OK]" if m['consolidated'] else " "
                         print(f"  {i}. [{status}] [{m['importance']:.1f}] {m['text']}")
             
             # ================== NAME ==================

@@ -80,7 +80,7 @@ def run_scaling_benchmark(
     print("Loading embedding model...")
     embedding_service = EmbeddingService()
     _ = embedding_service.dimension
-    print("  ✓ Loaded\n")
+    print("  [OK] Loaded\n")
     
     # Test points
     test_points = [1, 5, 10, 25, 50, 100]
@@ -237,11 +237,11 @@ def run_scaling_benchmark(
         latency_ratio = last["avg_latency_ms"] / first["avg_latency_ms"]
         
         print(f"\nScaling Analysis:")
-        print(f"  NPC count increased: {first['n_npcs']} → {last['n_npcs']} ({npc_ratio:.0f}x)")
-        print(f"  Latency increased: {first['avg_latency_ms']:.2f}ms → {last['avg_latency_ms']:.2f}ms ({latency_ratio:.1f}x)")
+        print(f"  NPC count increased: {first['n_npcs']} -> {last['n_npcs']} ({npc_ratio:.0f}x)")
+        print(f"  Latency increased: {first['avg_latency_ms']:.2f}ms -> {last['avg_latency_ms']:.2f}ms ({latency_ratio:.1f}x)")
         
         if latency_ratio < npc_ratio * 0.5:
-            print("  ✓ Sub-linear scaling achieved (O(log N) behavior)")
+            print("  [OK] Sub-linear scaling achieved (O(log N) behavior)")
         else:
             print("  ⚠ Linear or worse scaling")
     

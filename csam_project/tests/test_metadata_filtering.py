@@ -60,7 +60,7 @@ def test_metadata_filtering():
             importance=0.7,
             metadata={"player_name": "Bob", "npc_name": "Shopkeeper"}
         )
-        print(f"  ✓ Added: {text}")
+        print(f"  [OK] Added: {text}")
     
     for text in alice_memories:
         embedding = embedding_service.encode(text)
@@ -70,7 +70,7 @@ def test_metadata_filtering():
             importance=0.7,
             metadata={"player_name": "Alice", "npc_name": "Shopkeeper"}
         )
-        print(f"  ✓ Added: {text}")
+        print(f"  [OK] Added: {text}")
     
     for text in charlie_memories:
         embedding = embedding_service.encode(text)
@@ -80,7 +80,7 @@ def test_metadata_filtering():
             importance=0.7,
             metadata={"player_name": "Charlie", "npc_name": "Shopkeeper"}
         )
-        print(f"  ✓ Added: {text}")
+        print(f"  [OK] Added: {text}")
     
     print(f"\nTotal memories stored: {len(memory_repo)}")
     
@@ -113,7 +113,7 @@ def test_metadata_filtering():
         m.metadata.get('player_name') == 'Bob'
         for m, _ in results_bob
     )
-    print(f"\n  ✓ All results from Bob: {bob_only}")
+    print(f"\n  [OK] All results from Bob: {bob_only}")
     
     # Test 3: Retrieve with Alice filter
     print("\n4. Test: Retrieve with player_name='Alice' filter...")
@@ -133,7 +133,7 @@ def test_metadata_filtering():
         m.metadata.get('player_name') == 'Alice'
         for m, _ in results_alice
     )
-    print(f"\n  ✓ All results from Alice: {alice_only}")
+    print(f"\n  [OK] All results from Alice: {alice_only}")
     
     # Summary
     print("\n" + "=" * 60)
@@ -144,9 +144,9 @@ def test_metadata_filtering():
     print(f"  Alice filter: {len(results_alice)} results (Alice only: {alice_only})")
     
     if bob_only and alice_only:
-        print("\n✅ Metadata filtering WORKING CORRECTLY!")
+        print("\n[OK] Metadata filtering WORKING CORRECTLY!")
     else:
-        print("\n❌ Metadata filtering NOT working as expected")
+        print("\n[FAIL] Metadata filtering NOT working as expected")
     
     print("=" * 60)
 

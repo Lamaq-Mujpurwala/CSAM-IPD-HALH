@@ -1,0 +1,55 @@
+{
+  "timestamp": "2026-02-12T17:12:54.849200",
+  "benchmark": "musique_multimodel",
+  "num_questions": 50,
+  "results": [
+    {
+      "model": "Llama 3.1 8B",
+      "provider": "groq",
+      "model_id": "llama-3.1-8b-instant",
+      "f1": 0.4403492063492064,
+      "em": 0.32,
+      "latency_ms": 12381.53995513916,
+      "total_tokens": 66537,
+      "hop_f1": {
+        "3hop1": 0.4,
+        "2hop": 0.4998463901689708,
+        "4hop1": 0.3333333333333333,
+        "3hop2": 0.45999999999999996,
+        "4hop3": 0.07407407407407407
+      }
+    },
+    {
+      "model": "Llama 4 Scout 17B",
+      "provider": "groq",
+      "model_id": "meta-llama/llama-4-scout-17b-16e-instruct",
+      "f1": 0.4085282895399175,
+      "em": 0.3,
+      "latency_ms": 2037.4698305130005,
+      "total_tokens": 65106,
+      "hop_f1": {
+        "3hop1": 0.2,
+        "2hop": 0.4664537075827398,
+        "4hop1": 0.5,
+        "3hop2": 0.3372093023255814,
+        "4hop3": 0.09343434343434344
+      }
+    },
+    {
+      "model": "Llama 3.3 70B",
+      "provider": "groq",
+      "model_id": "llama-3.3-70b-versatile",
+      "f1": 0.5354223215399686,
+      "em": 0.42,
+      "latency_ms": 5556.197504997253,
+      "total_tokens": 66652,
+      "hop_f1": {
+        "3hop1": 0.2,
+        "2hop": 0.6216489057096267,
+        "4hop1": 0.5,
+        "3hop2": 0.7,
+        "4hop3": 0.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-02-12T17:58:34.887958",
+  "benchmark": "hotpotqa_multimodel",
+  "num_questions": 50,
+  "results": [
+    {
+      "model": "Llama 3.1 8B",
+      "provider": "groq",
+      "model_id": "llama-3.1-8b-instant",
+      "f1": 0.6535238095238095,
+      "em": 0.52,
+      "latency_ms": 14833.605237007141,
+      "total_tokens": 79163,
+      "type_f1": {
+        "comparison": 0.7826530612244899,
+        "bridge": 0.6033068783068783
+      }
+    },
+    {
+      "model": "Llama 4 Scout 17B",
+      "provider": "groq",
+      "model_id": "meta-llama/llama-4-scout-17b-16e-instruct",
+      "f1": 0.6303084922740095,
+      "em": 0.44,
+      "latency_ms": 2035.5693578720093,
+      "total_tokens": 77819,
+      "type_f1": {
+        "comparison": 0.5977629513343798,
+        "bridge": 0.6429650915283099
+      }
+    },
+    {
+      "model": "Llama 3.3 70B",
+      "provider": "groq",
+      "model_id": "llama-3.3-70b-versatile",
+      "f1": 0.7287619047619047,
+      "em": 0.54,
+      "latency_ms": 6904.072937965393,
+      "total_tokens": 79179,
+      "type_f1": {
+        "comparison": 0.8224489795918367,
+        "bridge": 0.6923280423280423
+      }
+    }
+  ]
+}

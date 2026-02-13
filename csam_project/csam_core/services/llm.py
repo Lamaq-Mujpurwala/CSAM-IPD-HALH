@@ -157,18 +157,49 @@ JSON:"""
 
         system = "You are an entity extraction system. Output valid JSON only."
         
-        response = self.generate(prompt, system_prompt=system, temperature=0.1, max_tokens=200)
+        response = self.generate(prompt, system_prompt=system, temperature=0.1, max_tokens=500)
         
         try:
-            # Try to parse JSON from response
-            # Handle case where model adds extra text
-            json_start = response.find('{')
-            json_end = response.rfind('}') + 1
-            if json_start >= 0 and json_end > json_start:
-                json_str = response[json_start:json_end]
-                return json.loads(json_str)
+            # Strip markdown code fences if present
+            cleaned = response.strip()
+            if cleaned.startswith('```'):
+                # Remove opening fence (```json or ```)
+                first_newline = cleaned.find('\n')
+                if first_newline > 0:
+                    cleaned = cleaned[first_newline + 1:]
+                # Remove closing fence
+                if cleaned.rstrip().endswith('```'):
+                    cleaned = cleaned.rstrip()[:-3].rstrip()
+            
+            # Find the outermost JSON object
+            json_start = cleaned.find('{')
+            if json_start >= 0:
+                # Count braces to find matching close
+                depth = 0
+                json_end = -1
+                for i in range(json_start, len(cleaned)):
+                    if cleaned[i] == '{':
+                        depth += 1
+                    elif cleaned[i] == '}':
+                        depth -= 1
+                        if depth == 0:
+                            json_end = i + 1
+                            break
+                
+                if json_end > json_start:
+                    json_str = cleaned[json_start:json_end]
+                    return json.loads(json_str)
+                else:
+                    # Truncated JSON -- try to repair by closing open structures
+                    partial = cleaned[json_start:]
+                    # Close any open arrays and the root object
+                    partial = partial.rstrip().rstrip(',')
+                    open_brackets = partial.count('[') - partial.count(']')
+                    open_braces = partial.count('{') - partial.count('}')
+                    partial += ']' * open_brackets + '}' * open_braces
+                    return json.loads(partial)
         except json.JSONDecodeError:
-            logger.warning(f"Failed to parse entity extraction response: {response}")
+            logger.warning(f"Failed to parse entity extraction response: {response[:200]}...")
         
         return {"entities": [], "relationships": []}
     
@@ -176,7 +207,8 @@ JSON:"""
         self,
         context: str,
         user_message: str,
-        persona: Optional[str] = None
+        persona: Optional[str] = None,
+        mode: str = "chat"
     ) -> str:
         """
         Generate NPC response given context and user message.
@@ -189,7 +221,19 @@ JSON:"""
         Returns:
             NPC's response
         """
-        prompt = f"""Based on the following context from your memory, respond to the user.
+        if mode == "qa":
+            prompt = f"""Answer the question based ONLY on the context below. Be extremely concise.
+            
+Context:
+{context}
+
+Question: {user_message}
+
+Answer:"""
+            system = "You are a precise database. Output only the requested date, name, or fact. Do not use full sentences unless necessary."
+            temperature = 0.1
+        else:
+            prompt = f"""Based on the following context from your memory, respond to the user.
 
 Context from memory:
 {context}
@@ -197,10 +241,10 @@ Context from memory:
 User says: {user_message}
 
 Your response:"""
-
-        system = persona or "You are a helpful NPC with a good memory. Be friendly and reference past conversations when relevant."
+            system = persona or "You are a helpful NPC with a good memory. Be friendly and reference past conversations when relevant."
+            temperature = 0.7
         
-        return self.generate(prompt, system_prompt=system, temperature=0.7, max_tokens=150)
+        return self.generate(prompt, system_prompt=system, temperature=temperature, max_tokens=150)
 
 
 # Singleton instance
