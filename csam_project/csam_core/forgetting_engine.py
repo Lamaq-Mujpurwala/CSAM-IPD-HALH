@@ -187,7 +187,7 @@ class ConsolidationAwareForgetting(ForgettingStrategy):
         beta: float = 0.2,
         gamma: float = 0.3,
         delta: float = 0.3,
-        consolidation_threshold: float = 0.0
+        consolidation_threshold: float = 0.3
     ):
         """
         Initialize the forgetting strategy.
@@ -197,8 +197,11 @@ class ConsolidationAwareForgetting(ForgettingStrategy):
             beta: Weight for inverse importance (1 - I(m))
             gamma: Weight for consolidation coverage C(m) ⭐
             delta: Weight for L3 redundancy D(m) ⭐
-            consolidation_threshold: Minimum C(m) to consider forgetting
-                                    (set > 0 to protect unconsolidated memories)
+            consolidation_threshold: Minimum C(m) to consider forgetting.
+                                    Memories with coverage < threshold are PROTECTED
+                                    from forgetting (score=0). Default 0.3 ensures
+                                    unconsolidated memories survive until L3 captures
+                                    their content.
         """
         self.alpha = alpha
         self.beta = beta

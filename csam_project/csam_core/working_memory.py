@@ -76,6 +76,9 @@ class WorkingMemoryCache:
         # Structured facts: player_name -> facts dict
         self._facts: Dict[str, Dict[str, Any]] = {}
         
+        # Monotonic counter for unique item IDs (avoids collisions after eviction)
+        self._id_counter: int = 0
+        
         # Statistics
         self._hits = 0
         self._misses = 0
@@ -110,7 +113,8 @@ class WorkingMemoryCache:
         )
         
         # Add to cache (newest = last in OrderedDict)
-        item_id = f"{player_name}_{len(self._cache[player_name])}"
+        item_id = f"{player_name}_{self._id_counter}"
+        self._id_counter += 1
         self._cache[player_name][item_id] = item
         self._total_items += 1
         

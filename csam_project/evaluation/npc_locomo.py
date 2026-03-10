@@ -47,29 +47,31 @@ class ConversationHistory:
 
 
 # Templates for generating diverse interactions
+# Each tuple: (template_string, values_dict, base_importance)
+# Importance assigned by fact category — NOT random
 INTERACTION_TEMPLATES = [
     # Shopping/Trading
-    ("Player bought {item} for {price} gold", {"item": ["sword", "shield", "potion", "armor", "bow"], "price": [50, 100, 150, 200, 300]}),
-    ("Player sold {item} to the merchant", {"item": ["old sword", "rare gem", "herbs", "leather", "iron ore"]}),
-    ("Player asked about {item} prices", {"item": ["weapons", "armor", "potions", "magical items", "food"]}),
+    ("Player bought {item} for {price} gold", {"item": ["sword", "shield", "potion", "armor", "bow"], "price": [50, 100, 150, 200, 300]}, 0.8),
+    ("Player sold {item} to the merchant", {"item": ["old sword", "rare gem", "herbs", "leather", "iron ore"]}, 0.7),
+    ("Player asked about {item} prices", {"item": ["weapons", "armor", "potions", "magical items", "food"]}, 0.4),
     
     # Personal information
-    ("Player said their name is {name}", {"name": ["Alex", "Jordan", "Morgan", "Sam", "Taylor"]}),
-    ("Player mentioned they are from {place}", {"place": ["the northern village", "the capital city", "the coastal town", "the mountain fortress", "the forest settlement"]}),
-    ("Player said they like {hobby}", {"hobby": ["hunting", "fishing", "crafting", "exploring", "collecting rare items"]}),
+    ("Player said their name is {name}", {"name": ["Alex", "Jordan", "Morgan", "Sam", "Taylor"]}, 0.9),
+    ("Player mentioned they are from {place}", {"place": ["the northern village", "the capital city", "the coastal town", "the mountain fortress", "the forest settlement"]}, 0.8),
+    ("Player said they like {hobby}", {"hobby": ["hunting", "fishing", "crafting", "exploring", "collecting rare items"]}, 0.6),
     
     # Quests/Tasks
-    ("Player asked about {quest}", {"quest": ["the missing merchant", "the dragon sighting", "the haunted mine", "the stolen artifact", "the bandit problem"]}),
-    ("Player completed {task}", {"task": ["the delivery quest", "the escort mission", "the monster hunt", "the treasure map", "the investigation"]}),
-    ("Player failed {task}", {"task": ["to defeat the boss", "the stealth mission", "to save the villager", "the time trial"]}),
+    ("Player asked about {quest}", {"quest": ["the missing merchant", "the dragon sighting", "the haunted mine", "the stolen artifact", "the bandit problem"]}, 0.7),
+    ("Player completed {task}", {"task": ["the delivery quest", "the escort mission", "the monster hunt", "the treasure map", "the investigation"]}, 0.8),
+    ("Player failed {task}", {"task": ["to defeat the boss", "the stealth mission", "to save the villager", "the time trial"]}, 0.7),
     
     # Emotions/Reactions
-    ("Player expressed {emotion} about {topic}", {"emotion": ["excitement", "concern", "frustration", "joy", "curiosity"], "topic": ["the recent battle", "the new equipment", "the village problems", "their progress"]}),
-    ("Player thanked the shopkeeper for {reason}", {"reason": ["the advice", "the discount", "the information", "the help", "the recommendation"]}),
+    ("Player expressed {emotion} about {topic}", {"emotion": ["excitement", "concern", "frustration", "joy", "curiosity"], "topic": ["the recent battle", "the new equipment", "the village problems", "their progress"]}, 0.3),
+    ("Player thanked the shopkeeper for {reason}", {"reason": ["the advice", "the discount", "the information", "the help", "the recommendation"]}, 0.3),
     
     # Events
-    ("Player mentioned seeing {event}", {"event": ["a strange creature", "suspicious travelers", "a meteor", "unusual weather", "armed soldiers"]}),
-    ("Player talked about {past_event}", {"past_event": ["their first adventure", "when they met the king", "the great battle", "their training days", "their hometown"]}),
+    ("Player mentioned seeing {event}", {"event": ["a strange creature", "suspicious travelers", "a meteor", "unusual weather", "armed soldiers"]}, 0.5),
+    ("Player talked about {past_event}", {"past_event": ["their first adventure", "when they met the king", "the great battle", "their training days", "their hometown"]}, 0.4),
 ]
 
 
@@ -104,8 +106,10 @@ class BenchmarkGenerator:
         base_time = datetime.now() - timedelta(days=time_span_days)
         
         for i in range(num_interactions):
-            # Select random template
-            template, values_dict = random.choice(INTERACTION_TEMPLATES)
+            # Select random template (now includes base importance)
+            template, values_dict, base_importance = random.choice(
+                INTERACTION_TEMPLATES
+            )
             
             # Fill in template
             filled_values = {}
@@ -121,6 +125,11 @@ class BenchmarkGenerator:
             )
             timestamp = base_time + time_offset
             
+            # Importance from fact category + small noise (±0.05)
+            importance = max(0.0, min(1.0,
+                base_importance + random.uniform(-0.05, 0.05)
+            ))
+            
             # Create interaction
             interaction = Interaction(
                 id=i,
@@ -128,7 +137,7 @@ class BenchmarkGenerator:
                 timestamp=timestamp,
                 speaker="player",
                 facts=filled_values,
-                importance=random.uniform(0.3, 0.9)
+                importance=importance
             )
             interactions.append(interaction)
             
@@ -325,11 +334,11 @@ class BenchmarkGenerator:
         
         # Questions about things that were never mentioned
         adversarial_questions = [
-            ("What pet does the player have?", "unknown/not mentioned"),
-            ("What is the player's favorite food?", "unknown/not mentioned"),
-            ("How many children does the player have?", "unknown/not mentioned"),
-            ("What is the player's profession?", "unknown/not mentioned"),
-            ("What color is the player's armor?", "unknown/not mentioned"),
+            ("What pet does the player have?", "not mentioned"),
+            ("What is the player's favorite food?", "not mentioned"),
+            ("How many children does the player have?", "not mentioned"),
+            ("What is the player's profession?", "not mentioned"),
+            ("What color is the player's armor?", "not mentioned"),
         ]
         
         # Check what was actually mentioned

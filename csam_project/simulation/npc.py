@@ -162,7 +162,15 @@ class NPC:
             l3_embeddings=l3_embeddings
         )
         
-        self.memory_repo.delete_batch(to_forget)
+        deleted = self.memory_repo.delete_batch(to_forget)
+        
+        # Periodically rebuild HNSW index to reclaim space from soft-deleted vectors
+        # Rebuild every 5 forgetting cycles to amortize the cost
+        if not hasattr(self, '_forget_cycles'):
+            self._forget_cycles = 0
+        self._forget_cycles += 1
+        if self._forget_cycles % 5 == 0:
+            self.memory_repo.rebuild_index()
     
     def run_consolidation(self):
         """Manually trigger consolidation."""
@@ -182,10 +190,24 @@ class NPC:
         if mode == "qa":
             # QA mode: direct L2 retrieval with high k, no MMR, no L1 noise
             # This matches the benchmark pipeline that achieves our published results
-            l2_results = self.memory_repo.retrieve(query_embedding, k=k)
+            # Retrieve extra candidates so we can re-rank by importance
+            # Fetch a wide net (up to 100) since cosine-only ordering may bury
+            # high-importance facts among semantically-similar filler.
+            candidate_k = min(max(k * 5, 100), len(self.memory_repo))
+            l2_results = self.memory_repo.retrieve(query_embedding, k=candidate_k)
+            
+            # Re-rank: blend cosine similarity with importance so high-importance
+            # facts (0.95) surface above semantically-similar low-importance filler (0.2-0.3).
+            # Formula: combined = 0.5 * similarity + 0.5 * importance
+            reranked = []
+            for memory, sim_score in l2_results:
+                combined = 0.5 * sim_score + 0.5 * memory.importance
+                reranked.append((memory, combined))
+            reranked.sort(key=lambda x: x[1], reverse=True)
+            top_results = reranked[:k]
             
             context_parts = ["Relevant Memories:"]
-            for memory, score in l2_results:
+            for memory, score in top_results:
                 context_parts.append(f"- {memory.text}")
             
             # Also check L3 knowledge graph
@@ -219,7 +241,7 @@ class NPC:
         
         return "\n".join(context_parts) if context_parts else "No relevant memories."
     
-    def respond(self, player_message: str, player_name: str = "Player", mode: str = "chat") -> Dict[str, Any]:
+    def respond(self, player_message: str, player_name: str = "Player", mode: str = "chat", store_interaction: bool = True) -> Dict[str, Any]:
         """
         Generate a response to the player's message.
         
@@ -227,6 +249,9 @@ class NPC:
             player_message: The player's input text
             player_name: Name of the player (for memory scoping)
             mode: Interaction mode - 'chat' (default) or 'qa' (concise fact retrieval)
+            store_interaction: Whether to save this interaction to memory.
+                             Set False during evaluation to avoid polluting the memory
+                             store with benchmark questions/responses.
             
         Returns:
             Dictionary with response and metadata
@@ -253,22 +278,24 @@ class NPC:
             response = self._generate_fallback_response(player_message, context)
         
         # Step 3: Save the interaction to memory with metadata
-        metadata = {
-            "player_name": player_name,
-            "npc_name": self.personality.name,
-            "timestamp": datetime.now().isoformat()
-        }
-        # Save with higher importance for direct interactions
-        self.add_memory(
-            f"{player_name} said: {player_message}",
-            importance=0.7,
-            metadata=metadata
-        )
-        self.add_memory(
-            f"I ({self.personality.name}) responded: {response}",
-            importance=0.5,
-            metadata=metadata
-        )
+        # (skip during evaluation to avoid polluting memory with benchmark Q&A)
+        if store_interaction:
+            metadata = {
+                "player_name": player_name,
+                "npc_name": self.personality.name,
+                "timestamp": datetime.now().isoformat()
+            }
+            # Save with higher importance for direct interactions
+            self.add_memory(
+                f"{player_name} said: {player_message}",
+                importance=0.7,
+                metadata=metadata
+            )
+            self.add_memory(
+                f"I ({self.personality.name}) responded: {response}",
+                importance=0.5,
+                metadata=metadata
+            )
         
         # Update stats
         elapsed_ms = (time.time() - start_time) * 1000

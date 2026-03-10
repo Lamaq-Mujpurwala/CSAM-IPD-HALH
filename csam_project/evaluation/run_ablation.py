@@ -9,7 +9,7 @@ It compares:
 4. Consolidation-Aware forgetting (OURS - novel)
 
 Metrics:
-- F1 score on Q&A tasks
+- F1 score on Q&A tasks (via real LLM answer generation)
 - Memory usage
 - Retrieval latency
 - Information retention ratio
@@ -19,14 +19,21 @@ import sys
 import os
 import time
 import json
+import re
+import logging
 import numpy as np
+from collections import Counter
 from datetime import datetime
-from typing import Dict, Any, List, Tuple
-from dataclasses import dataclass
+from typing import Dict, Any, List, Optional, Tuple
+from dataclasses import dataclass, field
 
 # Add project root to path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
+
+# Load environment variables from .env (required for Groq API key)
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(project_root), ".env"), override=True)
 
 from csam_core.memory_repository import MemoryRepository
 from csam_core.knowledge_graph import KnowledgeGraph
@@ -42,8 +49,11 @@ from csam_core.consolidation_tracker import ConsolidationTracker
 from csam_core.services.embedding import EmbeddingService
 from csam_core.consolidation import ConsolidationPipeline
 from csam_core.retrieval import HybridRetriever
+from csam_core.services.llm_hosted import HostedLLMService
 
 from evaluation.npc_locomo import BenchmarkGenerator, ConversationHistory, QAPair
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -56,6 +66,7 @@ class EvaluationResult:
     memory_bytes: int
     avg_latency_ms: float
     consolidation_ratio: float
+    qa_details: List[Dict[str, Any]] = field(default_factory=list)
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -65,7 +76,8 @@ class EvaluationResult:
             "memory_count": self.memory_count,
             "memory_bytes_mb": self.memory_bytes / 1e6,
             "avg_latency_ms": self.avg_latency_ms,
-            "consolidation_ratio": self.consolidation_ratio
+            "consolidation_ratio": self.consolidation_ratio,
+            "qa_details": self.qa_details
         }
 
 
@@ -162,6 +174,13 @@ class MemorySystemWithForgetting:
         
         # Delete selected memories
         self.memory_repo.delete_batch(to_forget)
+        
+        # Rebuild HNSW index periodically to reclaim soft-deleted vectors
+        if not hasattr(self, '_forget_cycles'):
+            self._forget_cycles = 0
+        self._forget_cycles += 1
+        if self._forget_cycles % 5 == 0:
+            self.memory_repo.rebuild_index()
     
     def retrieve(self, query: str, k: int = 5) -> List[Tuple[Any, float]]:
         """Retrieve relevant memories for a query."""
@@ -169,9 +188,9 @@ class MemorySystemWithForgetting:
         result = self.retriever.retrieve_sync(query_embedding, k=k)
         return result.final_results
     
-    def get_context_for_question(self, question: str) -> str:
+    def get_context_for_question(self, question: str, k: int = 10) -> str:
         """Get context string for answering a question."""
-        results = self.retrieve(question, k=5)
+        results = self.retrieve(question, k=k)
         
         context_parts = []
         for item, score in results:
@@ -199,26 +218,35 @@ class MemorySystemWithForgetting:
         }
 
 
+def normalize_text(text: str) -> str:
+    """Normalize text for F1 evaluation (SQuAD standard)."""
+    text = text.lower()
+    text = re.sub(r'[^\w\s]', '', text)
+    return text
+
+
 def compute_f1(predicted: str, ground_truth: str) -> float:
     """
-    Compute token-level F1 score.
+    Compute token-level F1 score (SQuAD standard).
     
-    Simple word overlap based F1.
+    Uses Counter-based intersection to handle duplicate tokens correctly.
+    This matches the evaluation used in benchmark_multimodel.py and
+    is the standard metric from the SQuAD and LoCoMo papers.
     """
-    pred_tokens = set(predicted.lower().split())
-    truth_tokens = set(ground_truth.lower().split())
+    pred_tokens = normalize_text(predicted).split()
+    truth_tokens = normalize_text(ground_truth).split()
     
     if not pred_tokens or not truth_tokens:
+        return int(pred_tokens == truth_tokens)
+    
+    common = Counter(pred_tokens) & Counter(truth_tokens)
+    num_same = sum(common.values())
+    
+    if num_same == 0:
         return 0.0
     
-    # Precision and recall
-    common = pred_tokens & truth_tokens
-    
-    if not common:
-        return 0.0
-    
-    precision = len(common) / len(pred_tokens)
-    recall = len(common) / len(truth_tokens)
+    precision = num_same / len(pred_tokens)
+    recall = num_same / len(truth_tokens)
     
     if precision + recall == 0:
         return 0.0
@@ -260,13 +288,32 @@ def answer_question_from_context(context: str, question: str, ground_truth: str)
         return "unknown", 0.0
 
 
+def answer_question_with_llm(
+    llm_service: HostedLLMService,
+    context: str,
+    question: str,
+) -> str:
+    """
+    Use a real LLM to answer a question given retrieved context.
+
+    This replaces the old word-overlap hack that leaked ground truth.
+    """
+    return llm_service.generate_response(
+        context=context,
+        user_message=question,
+        persona=None,
+        mode="qa"
+    )
+
+
 def evaluate_strategy(
     strategy_name: str,
     forgetting_strategy: ForgettingStrategy,
     dataset: List[ConversationHistory],
     embedding_service: EmbeddingService,
     max_memories: int = 10000,
-    forget_threshold: int = 500,
+    forget_threshold: int = 80,
+    llm_service: Optional[HostedLLMService] = None,
     verbose: bool = True
 ) -> EvaluationResult:
     """
@@ -328,17 +375,40 @@ def evaluate_strategy(
     avg_latency = np.mean(latencies)
     
     # Evaluate on Q&A pairs
+    use_llm = llm_service is not None
     f1_by_type = {"single-hop": [], "multi-hop": [], "temporal": [], "adversarial": []}
+    qa_details: List[Dict[str, Any]] = []
     
     if verbose:
-        print(f"  Evaluating {len(all_qa_pairs)} Q&A pairs...")
+        mode_str = "LLM (Groq)" if use_llm else "word-overlap fallback"
+        print(f"  Evaluating {len(all_qa_pairs)} Q&A pairs [{mode_str}]...")
     
-    for qa in all_qa_pairs:
+    for i, qa in enumerate(all_qa_pairs):
         context = system.get_context_for_question(qa.question)
-        predicted, score = answer_question_from_context(context, qa.question, qa.answer)
+        
+        if use_llm:
+            predicted = answer_question_with_llm(llm_service, context, qa.question)
+        else:
+            predicted, _ = answer_question_from_context(context, qa.question, qa.answer)
         
         f1 = compute_f1(predicted, qa.answer)
         f1_by_type[qa.qa_type].append(f1)
+        
+        detail = {
+            "question": qa.question,
+            "ground_truth": qa.answer,
+            "predicted": predicted,
+            "f1": round(f1, 4),
+            "type": qa.qa_type,
+            "context_preview": context[:300]
+        }
+        qa_details.append(detail)
+        
+        if verbose:
+            icon = "OK" if f1 > 0.3 else "--" if f1 > 0 else "XX"
+            print(f"    [{icon}] Q{i+1:02d} ({qa.qa_type[:6]:>6}) "
+                  f"F1={f1:.3f}  truth='{qa.answer[:40]}'  "
+                  f"pred='{predicted[:40]}'")
     
     # Aggregate F1 scores
     f1_scores = {}
@@ -353,10 +423,11 @@ def evaluate_strategy(
     stats = system.get_statistics()
     
     if verbose:
-        print(f"\n  Results:")
+        print(f"\n  Results for {strategy_name}:")
         print(f"    Overall F1: {overall_f1:.3f}")
         for qa_type, f1 in f1_scores.items():
             print(f"    {qa_type}: {f1:.3f}")
+        print(f"    Memory count: {stats['memory_count']}")
         print(f"    Latency: {avg_latency:.2f}ms")
     
     return EvaluationResult(
@@ -366,25 +437,34 @@ def evaluate_strategy(
         memory_count=stats["memory_count"],
         memory_bytes=stats["memory_bytes"],
         avg_latency_ms=avg_latency,
-        consolidation_ratio=stats["consolidation_ratio"]
+        consolidation_ratio=stats["consolidation_ratio"],
+        qa_details=qa_details
     )
 
 
 def run_ablation_study(
     num_conversations: int = 5,
     interactions_per_conversation: int = 100,
-    forget_threshold: int = 200,
+    forget_threshold: int = 80,
     output_file: str = None,
+    use_llm: bool = True,
+    llm_model: str = "llama-3.1-8b-instant",
     verbose: bool = True
 ):
     """
     Run the full ablation study.
     
     Compares all forgetting strategies on the NPC-LoCoMo benchmark.
+    When *use_llm* is True, answers are generated by a real LLM (Groq)
+    instead of the old word-overlap proxy.
     """
     print("=" * 70)
     print("CSAM ABLATION STUDY: Forgetting Strategy Comparison")
     print("=" * 70)
+    print(f"  Conversations: {num_conversations}")
+    print(f"  Interactions/conv: {interactions_per_conversation}")
+    print(f"  Forget threshold: {forget_threshold}")
+    print(f"  LLM QA: {use_llm} ({llm_model if use_llm else 'N/A'})")
     
     # Generate benchmark dataset
     print("\nGenerating benchmark dataset...")
@@ -405,6 +485,17 @@ def run_ablation_study(
     embedding_service = EmbeddingService()
     _ = embedding_service.dimension  # Force load
     
+    # Initialize LLM service if requested
+    llm_service = None
+    if use_llm:
+        llm_service = HostedLLMService(provider="groq", model=llm_model)
+        if llm_service.is_available():
+            n_keys = len(llm_service._api_keys)
+            print(f"  [OK] Groq LLM connected ({llm_model}), {n_keys} API key(s) loaded")
+        else:
+            print("  [WARN] Groq not available, falling back to word-overlap")
+            llm_service = None
+    
     # Define strategies to compare
     strategies = [
         ("No-Forgetting", NoForgetting()),
@@ -412,7 +503,7 @@ def run_ablation_study(
         ("Importance", ImportanceForgetting()),
         ("Consolidation-Aware (Ours)", ConsolidationAwareForgetting(
             alpha=0.2, beta=0.2, gamma=0.3, delta=0.3,
-            consolidation_threshold=0.0
+            consolidation_threshold=0.3
         )),
     ]
     
@@ -425,6 +516,7 @@ def run_ablation_study(
             dataset=dataset,
             embedding_service=embedding_service,
             forget_threshold=forget_threshold,
+            llm_service=llm_service,
             verbose=verbose
         )
         results.append(result)
@@ -453,6 +545,21 @@ def run_ablation_study(
               f"{r.f1_scores.get('temporal', 0):>12.3f} "
               f"{r.f1_scores.get('adversarial', 0):>12.3f}")
     
+    # Print token usage summary
+    if llm_service is not None:
+        usage = llm_service.get_usage_stats()
+        print("\n" + "-" * 70)
+        print("API USAGE SUMMARY:")
+        print("-" * 70)
+        print(f"  Provider:       {usage['provider']}")
+        print(f"  Model:          {usage['model']}")
+        print(f"  API keys used:  {usage['num_api_keys']}")
+        print(f"  Total requests: {usage['total_requests']}")
+        print(f"  Tokens in:      {usage['total_tokens_in']:,}")
+        print(f"  Tokens out:     {usage['total_tokens_out']:,}")
+        print(f"  Total tokens:   {usage['total_tokens']:,}")
+        print(f"  Avg latency:    {usage['avg_latency_ms']:.0f}ms")
+    
     # Save results if output file specified
     if output_file:
         output_data = {
@@ -460,9 +567,12 @@ def run_ablation_study(
             "config": {
                 "num_conversations": num_conversations,
                 "interactions_per_conversation": interactions_per_conversation,
-                "forget_threshold": forget_threshold
+                "forget_threshold": forget_threshold,
+                "use_llm": use_llm,
+                "llm_model": llm_model if use_llm else None,
             },
-            "results": [r.to_dict() for r in results]
+            "results": [r.to_dict() for r in results],
+            "api_usage": llm_service.get_usage_stats() if llm_service else None
         }
         
         with open(output_file, 'w') as f:
@@ -478,8 +588,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run CSAM Ablation Study")
     parser.add_argument("--conversations", type=int, default=5, help="Number of conversations")
     parser.add_argument("--interactions", type=int, default=100, help="Interactions per conversation")
-    parser.add_argument("--threshold", type=int, default=200, help="Forget threshold")
+    parser.add_argument("--threshold", type=int, default=80, help="Forget threshold (lower = more pressure)")
     parser.add_argument("--output", type=str, default=None, help="Output JSON file")
+    parser.add_argument("--no-llm", action="store_true", help="Disable LLM (use word-overlap fallback)")
+    parser.add_argument("--model", type=str, default="llama-3.1-8b-instant", help="Groq model for QA")
     parser.add_argument("--quiet", action="store_true", help="Reduce output")
     
     args = parser.parse_args()
@@ -489,5 +601,7 @@ if __name__ == "__main__":
         interactions_per_conversation=args.interactions,
         forget_threshold=args.threshold,
         output_file=args.output,
+        use_llm=not args.no_llm,
+        llm_model=args.model,
         verbose=not args.quiet
     )

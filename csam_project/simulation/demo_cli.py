@@ -35,28 +35,31 @@ from csam_core.services.embedding import EmbeddingService
 from csam_core.services.llm import LLMService
 
 
-# Random conversation templates for skip functionality
-RANDOM_DIALOGUES = [
-    "What's the weather like today?",
-    "Have you heard any news?",
-    "Tell me about yourself.",
-    "What do you recommend?",
-    "How's business been?",
-    "Any interesting travelers lately?",
-    "What's your favorite drink?",
-    "Tell me a story.",
-    "What do you think about the king?",
-    "Have you seen anything strange?",
-    "What's your opinion on magic?",
-    "Do you know any good jokes?",
-    "What's the best thing to eat here?",
-    "How long have you been here?",
-    "What brings you to this tavern?",
-    "Any quests available?",
-    "Tell me about the local area.",
-    "What's your greatest fear?",
-    "Do you believe in dragons?",
-    "What's your favorite memory?",
+# Random conversation pairs for skip functionality.
+# IMPORTANT: These must be mundane world-building statements, NOT questions
+# about personal favorites/names/hobbies -- those would semantically clash
+# with recall queries and bury real facts in noise.
+RANDOM_DIALOGUE_PAIRS = [
+    ("The roads north have been muddy lately.", "Aye, the rains came early this season."),
+    ("I saw the merchant caravan arrive at dawn.", "They brought spices from the eastern provinces."),
+    ("The blacksmith is forging new horseshoes.", "He has been busy since the festival."),
+    ("Crops look promising this harvest.", "The farmers are hopeful after last year's drought."),
+    ("The river flooded the lower bridge again.", "The town council is debating repairs."),
+    ("There was a wolf sighting near the old mill.", "The hunters set out at first light."),
+    ("The baker made fresh rye bread today.", "It sold out before noon as usual."),
+    ("The town crier announced a new tax.", "The merchants are not thrilled about it."),
+    ("A bard performed at the square last night.", "The crowd loved the ballad of the silver knight."),
+    ("The old watchtower needs repairs.", "The stone walls have crumbled on the east side."),
+    ("Ships docked at the harbor this morning.", "They carried timber from the northern forests."),
+    ("The healer gathered herbs near the swamp.", "She found rare moonpetal flowers."),
+    ("The garrison doubled patrols last week.", "Rumors of bandits on the trade road."),
+    ("The well in the market square ran dry.", "Villagers are fetching water from the creek."),
+    ("A traveling scholar passed through town.", "He was studying ancient ruins nearby."),
+    ("The festival lanterns are being hung.", "The celebration starts in three days."),
+    ("Fog rolled in from the coast overnight.", "The fishermen delayed their departure."),
+    ("The goat herd wandered into the barley field.", "The farmer was not pleased."),
+    ("A messenger arrived from the capital.", "He carried sealed documents for the magistrate."),
+    ("The tavern cellar flooded during the storm.", "We lost a barrel of cider to the water."),
 ]
 
 
@@ -158,23 +161,24 @@ class TavernDemo:
         original_conv_count = npc.conversation_count
         
         for i in range(count):
-            # Random dialogue -- store directly as memories (no LLM call)
-            message = random.choice(RANDOM_DIALOGUES)
+            # Random dialogue pair -- store as statement/response (no LLM call)
+            player_line, npc_line = random.choice(RANDOM_DIALOGUE_PAIRS)
             metadata = {
                 "player_name": self.player_name,
                 "npc_name": npc.personality.name,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
+                "is_filler": True
             }
-            # Store player message
+            # Store player statement (mundane world-building, low importance)
             npc.add_memory(
-                f"{self.player_name} said: {message}",
-                importance=0.5,
+                f"{self.player_name} mentioned: {player_line}",
+                importance=0.3,
                 metadata=metadata
             )
-            # Store a simple NPC acknowledgment (no LLM generation)
+            # Store NPC response (actual statement, not echo)
             npc.add_memory(
-                f"I ({npc.personality.name}) responded to: {message[:60]}",
-                importance=0.3,
+                f"{npc.personality.name} replied: {npc_line}",
+                importance=0.2,
                 metadata=metadata
             )
             npc.conversation_count += 1

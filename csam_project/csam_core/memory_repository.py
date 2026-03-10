@@ -372,6 +372,47 @@ class MemoryRepository:
             "avg_access_count": avg_access
         }
     
+    def rebuild_index(self) -> None:
+        """
+        Rebuild the HNSW index from scratch using only living memories.
+        
+        Call this periodically after forgetting cycles to reclaim space
+        from soft-deleted vectors that still occupy the HNSW index.
+        """
+        if len(self) == 0:
+            self._index = None
+            self._id_to_index.clear()
+            self._index_to_id.clear()
+            self._next_index = 0
+            return
+        
+        import hnswlib
+        new_index = hnswlib.Index(space='cosine', dim=self.embedding_dim)
+        new_index.init_index(
+            max_elements=self.max_memories,
+            ef_construction=self.ef_construction,
+            M=self.M
+        )
+        new_index.set_ef(self.ef_search)
+        
+        new_id_to_index = {}
+        new_index_to_id = {}
+        
+        for i, (memory_id, memory) in enumerate(self._memories.items()):
+            new_index.add_items(
+                memory.embedding.reshape(1, -1).astype(np.float32),
+                np.array([i])
+            )
+            new_id_to_index[memory_id] = i
+            new_index_to_id[i] = memory_id
+        
+        self._index = new_index
+        self._id_to_index = new_id_to_index
+        self._index_to_id = new_index_to_id
+        self._next_index = len(self._memories)
+        
+        logger.info(f"Rebuilt HNSW index with {len(self)} memories (reclaimed stale vectors)")
+    
     def benchmark_retrieval(self, n_queries: int = 100) -> Dict[str, float]:
         """
         Benchmark retrieval performance.

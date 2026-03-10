@@ -97,14 +97,26 @@ class HostedLLMService:
         self.min_interval = 60.0 / self.rate_limit_rpm  # seconds between requests
         self._last_request_time = 0
         
-        # API key
+        # API key(s) — supports rotation through multiple keys
+        self._api_keys: List[str] = []
+        self._key_index = 0
         if api_key:
-            self.api_key = api_key
+            self._api_keys = [api_key]
         else:
             env_key = self.provider_config["env_key"]
-            self.api_key = os.environ.get(env_key, "")
-            if not self.api_key:
+            # Collect all matching keys: GROQ_API_KEY, GROQ_API_KEY_2, ...
+            base = os.environ.get(env_key, "")
+            if base:
+                self._api_keys.append(base)
+            for suffix in range(2, 20):
+                extra = os.environ.get(f"{env_key}_{suffix}", "")
+                if extra:
+                    self._api_keys.append(extra)
+            if not self._api_keys:
                 logger.warning(f"No API key found for {provider}. Set ${env_key} environment variable.")
+            else:
+                logger.info(f"Loaded {len(self._api_keys)} API key(s) for {provider}")
+        self.api_key = self._api_keys[0] if self._api_keys else ""
         
         # Stats tracking
         self.total_requests = 0
@@ -208,9 +220,10 @@ class HostedLLMService:
                 result = self._strip_thinking_tags(result)
                 return result
             elif response.status_code == 429:
-                # Rate limited — wait and retry once
-                retry_after = int(response.headers.get("Retry-After", 5))
-                logger.warning(f"Rate limited by {self.provider}. Waiting {retry_after}s...")
+                # Rate limited — rotate key and retry
+                retry_after = int(response.headers.get("Retry-After", 2))
+                self._rotate_key()
+                logger.warning(f"Rate limited by {self.provider}. Waiting {retry_after}s... (rotated to key {self._key_index + 1}/{len(self._api_keys)})")
                 time.sleep(retry_after)
                 return self.generate(prompt, system_prompt, temperature, max_tokens)
             else:
@@ -325,6 +338,12 @@ Your response:"""
         
         return self.generate(prompt, system_prompt=system, temperature=temperature, max_tokens=150)
     
+    def _rotate_key(self):
+        """Rotate to the next API key."""
+        if len(self._api_keys) > 1:
+            self._key_index = (self._key_index + 1) % len(self._api_keys)
+            self.api_key = self._api_keys[self._key_index]
+    
     def get_usage_stats(self) -> Dict[str, Any]:
         """Get API usage statistics."""
         return {
@@ -335,6 +354,7 @@ Your response:"""
             "total_tokens_out": self.total_tokens_out,
             "total_tokens": self.total_tokens_in + self.total_tokens_out,
             "avg_latency_ms": self.total_latency_ms / max(1, self.total_requests),
+            "num_api_keys": len(self._api_keys),
         }
     
     def __repr__(self):
