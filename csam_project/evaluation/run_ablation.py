@@ -218,6 +218,26 @@ class MemorySystemWithForgetting:
         }
 
 
+# Phrases that semantically mean "not mentioned / unanswerable".
+# Used to detect correct adversarial refusals regardless of phrasing.
+_NEGATION_PHRASES = frozenset([
+    "not mentioned", "no information available", "no information provided",
+    "no information", "unknown", "none", "none mentioned",
+    "no answer available", "not found", "not stated",
+    "no mention", "not available", "no data",
+])
+
+
+def _is_negation(text: str) -> bool:
+    """Return True if *text* is a canonical 'unanswerable' refusal."""
+    normalized = re.sub(r'[^\w\s]', '', text.lower()).strip()
+    # Check exact match first
+    if normalized in _NEGATION_PHRASES:
+        return True
+    # Also match longer variants like "no information about X is provided"
+    return any(normalized.startswith(p) for p in _NEGATION_PHRASES)
+
+
 def normalize_text(text: str) -> str:
     """Normalize text for F1 evaluation (SQuAD standard)."""
     text = text.lower()
@@ -232,7 +252,15 @@ def compute_f1(predicted: str, ground_truth: str) -> float:
     Uses Counter-based intersection to handle duplicate tokens correctly.
     This matches the evaluation used in benchmark_multimodel.py and
     is the standard metric from the SQuAD and LoCoMo papers.
+    
+    Special case: if both predicted and ground_truth express 'unanswerable'
+    (e.g. "not mentioned" vs "No information available"), returns 1.0.
+    This follows SQuAD 2.0 convention for unanswerable questions.
     """
+    # Handle adversarial / unanswerable equivalence
+    if _is_negation(ground_truth) and _is_negation(predicted):
+        return 1.0
+
     pred_tokens = normalize_text(predicted).split()
     truth_tokens = normalize_text(ground_truth).split()
     

@@ -249,41 +249,76 @@ class BenchmarkGenerator:
         interactions: List[Interaction],
         facts_database: Dict[str, Any]
     ) -> List[QAPair]:
-        """Generate multi-hop reasoning questions."""
+        """Generate multi-hop reasoning questions.
+
+        Fixes:
+        - "What did X buy?" now uses ALL items bought (not a single
+          random pick), so the ground truth matches what the LLM sees.
+        - "What was the most expensive item X bought?" is a true
+          multi-hop question requiring name lookup + price comparison.
+        """
         qa_pairs = []
-        
-        # Find interactions that can be combined
+
         name_interactions = [i for i in interactions if "name" in i.facts]
-        item_interactions = [i for i in interactions if "item" in i.facts]
-        
-        if name_interactions and item_interactions:
+        # Only "bought" interactions have both item and price
+        buy_interactions = [
+            i for i in interactions
+            if "item" in i.facts and "price" in i.facts
+        ]
+
+        if name_interactions and buy_interactions:
             name_i = name_interactions[0]
-            item_i = random.choice(item_interactions)
-            
+            player_name = name_i.facts["name"]
+
+            # Q1: What items did <name> buy?  (ground truth = all items)
+            all_items = sorted({i.facts["item"] for i in buy_interactions})
+            source_ids = [name_i.id] + [i.id for i in buy_interactions]
             qa_pairs.append(QAPair(
-                question=f"What did {name_i.facts['name']} buy?",
-                answer=item_i.facts.get("item", "unknown item"),
+                question=f"What items did {player_name} buy?",
+                answer=", ".join(all_items),
                 qa_type="multi-hop",
-                source_interaction_ids=[name_i.id, item_i.id],
+                source_interaction_ids=source_ids,
                 difficulty="medium"
             ))
-        
-        # Hobby + Activity combination
-        hobby_interactions = [i for i in interactions if "hobby" in i.facts]
-        quest_interactions = [i for i in interactions if "quest" in i.facts]
-        
-        if hobby_interactions and quest_interactions:
-            hobby_i = hobby_interactions[0]
-            quest_i = quest_interactions[0]
-            
+
+            # Q2: Most expensive purchase (true reasoning over price)
+            most_expensive = max(buy_interactions,
+                                 key=lambda i: i.facts["price"])
             qa_pairs.append(QAPair(
-                question=f"What quest was the player interested in, given that they enjoy {hobby_i.facts['hobby']}?",
-                answer=quest_i.facts["quest"],
+                question=(
+                    f"What was the most expensive item "
+                    f"{player_name} bought?"
+                ),
+                answer=(
+                    f"{most_expensive.facts['item']} for "
+                    f"{most_expensive.facts['price']} gold"
+                ),
+                qa_type="multi-hop",
+                source_interaction_ids=[name_i.id, most_expensive.id],
+                difficulty="hard"
+            ))
+
+        # Hobby + completed-quest combination
+        hobby_interactions = [i for i in interactions if "hobby" in i.facts]
+        completed_quests = [
+            i for i in interactions
+            if "task" in i.facts and "completed" in i.text.lower()
+        ]
+
+        if hobby_interactions and completed_quests:
+            hobby_i = hobby_interactions[0]
+            quest_i = completed_quests[0]
+            qa_pairs.append(QAPair(
+                question=(
+                    f"The player enjoys {hobby_i.facts['hobby']}. "
+                    f"What quest did they complete?"
+                ),
+                answer=quest_i.facts["task"],
                 qa_type="multi-hop",
                 source_interaction_ids=[hobby_i.id, quest_i.id],
                 difficulty="hard"
             ))
-        
+
         return qa_pairs[:5]
     
     def _generate_temporal_qa(self, interactions: List[Interaction]) -> List[QAPair]:
