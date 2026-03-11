@@ -1,0 +1,114 @@
+{
+  "timestamp": "2026-03-11T17:20:11.443230",
+  "config": {
+    "num_conversations": 5,
+    "interactions_per_conversation": 100,
+    "thresholds": [
+      50,
+      80,
+      100,
+      120,
+      150
+    ],
+    "ca_weights": {
+      "alpha": 0.25,
+      "beta": 0.25,
+      "gamma": 0.25,
+      "delta": 0.25
+    },
+    "consolidation_threshold": 0.3,
+    "llm_model": "llama-3.1-8b-instant"
+  },
+  "no_forgetting": {
+    "overall_f1": 0.3242,
+    "f1_scores": {
+      "single-hop": 0.2782,
+      "multi-hop": 0.0,
+      "temporal": 0.3702,
+      "adversarial": 0.0
+    },
+    "memory_count": 500
+  },
+  "sweep": [
+    {
+      "threshold": 50,
+      "overall_f1": 0.3633,
+      "f1_scores": {
+        "single-hop": 0.466,
+        "multi-hop": 0.0,
+        "temporal": 0.2606,
+        "adversarial": 0.0
+      },
+      "memory_count": 80,
+      "consolidation_ratio": 0.975,
+      "avg_latency_ms": 5.7,
+      "elapsed_s": 138.3
+    },
+    {
+      "threshold": 80,
+      "overall_f1": 0.2138,
+      "f1_scores": {
+        "single-hop": 0.3462,
+        "multi-hop": 0.0,
+        "temporal": 0.2593,
+        "adversarial": 0.036
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 5.27,
+      "elapsed_s": 141.7
+    },
+    {
+      "threshold": 100,
+      "overall_f1": 0.1568,
+      "f1_scores": {
+        "single-hop": 0.2647,
+        "multi-hop": 0.05,
+        "temporal": 0.2645,
+        "adversarial": 0.048
+      },
+      "memory_count": 100,
+      "consolidation_ratio": 1.0,
+      "avg_latency_ms": 4.86,
+      "elapsed_s": 139.6
+    },
+    {
+      "threshold": 120,
+      "overall_f1": 0.1958,
+      "f1_scores": {
+        "single-hop": 0.2704,
+        "multi-hop": 0.0469,
+        "temporal": 0.4059,
+        "adversarial": 0.06
+      },
+      "memory_count": 116,
+      "consolidation_ratio": 1.0,
+      "avg_latency_ms": 5.49,
+      "elapsed_s": 139.7
+    },
+    {
+      "threshold": 150,
+      "overall_f1": 0.1687,
+      "f1_scores": {
+        "single-hop": 0.3014,
+        "multi-hop": 0.0069,
+        "temporal": 0.2667,
+        "adversarial": 0.1
+      },
+      "memory_count": 140,
+      "consolidation_ratio": 1.0,
+      "avg_latency_ms": 26.32,
+      "elapsed_s": 152.7
+    }
+  ],
+  "api_usage": {
+    "provider": "groq",
+    "model": "llama-3.1-8b-instant",
+    "total_requests": 408,
+    "total_tokens_in": 121661,
+    "total_tokens_out": 3344,
+    "total_tokens": 125005,
+    "avg_latency_ms": 379.2428134703169,
+    "num_api_keys": 2
+  }
+}

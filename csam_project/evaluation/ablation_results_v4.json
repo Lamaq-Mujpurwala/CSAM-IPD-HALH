@@ -1,0 +1,2262 @@
+{
+  "timestamp": "2026-03-11T17:02:42.688964",
+  "config": {
+    "num_conversations": 5,
+    "interactions_per_conversation": 100,
+    "forget_threshold": 80,
+    "use_llm": true,
+    "llm_model": "llama-3.1-8b-instant"
+  },
+  "results": [
+    {
+      "strategy": "No-Forgetting",
+      "f1_scores": {
+        "single-hop": 0.2793288300534677,
+        "multi-hop": 0.0,
+        "temporal": 0.4348562548562549,
+        "adversarial": 0.008888888888888889
+      },
+      "overall_f1": 0.2410246579328705,
+      "memory_count": 500,
+      "memory_bytes_mb": 0.868,
+      "avg_latency_ms": 5.847884999911912,
+      "consolidation_ratio": 1.0,
+      "qa_details": [
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Jordan",
+          "predicted": "Sam \nTaylor \nAlex \nJordan \nMorgan",
+          "f1": 0.3333,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer sold iron ore to the merchant. Player completed the investigation. Player bought potion for 200 gold. Player mentioned seeing suspicious travelers. Player said their name is Taylor.\nPlayer thanked the shopkeeper for the advice. Player expressed joy about the rece"
+        },
+        {
+          "question": "How much did the shield cost?",
+          "ground_truth": "150 gold",
+          "predicted": "50, 150, 200, 300, 300, 200, 150",
+          "f1": 0.2222,
+          "type": "single-hop",
+          "context_preview": "Player bought shield for 150 gold\nPlayer completed the escort mission. Player asked about armor prices. Player asked about the haunted mine. Player completed the monster hunt. Player said they like fishing.\nPlayer asked about weapons prices\nPlayer asked about potions prices. Player said they like fi"
+        },
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Morgan",
+          "predicted": "Sam \nTaylor \nAlex \nJordan \nMorgan",
+          "f1": 0.3333,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer sold iron ore to the merchant. Player completed the investigation. Player bought potion for 200 gold. Player mentioned seeing suspicious travelers. Player said their name is Taylor.\nPlayer thanked the shopkeeper for the advice. Player expressed joy about the rece"
+        },
+        {
+          "question": "How much did the armor cost?",
+          "ground_truth": "300 gold",
+          "predicted": "100, 150, 100, 150, 100, 150",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player asked about armor prices\nPlayer bought shield for 300 gold\nPlayer bought sword for 50 gold. Player asked about potions prices. Player mentioned they are from the mountain fortress. Player thanked the shopkeeper for the information. Player said they like fishing.\nPlayer mentioned seeing armed "
+        },
+        {
+          "question": "Where is the player from?",
+          "ground_truth": "the capital city",
+          "predicted": "1. The capital city\n2. The northern village\n3. The forest settlement\n4. The mountain fortress\n5. The coastal town",
+          "f1": 0.2609,
+          "type": "single-hop",
+          "context_preview": "Player mentioned they are from the capital city\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer mentioned they are from the forest settlement. Player ment"
+        },
+        {
+          "question": "What did Jordan buy?",
+          "ground_truth": "potion",
+          "predicted": "Shield for 50 gold, armor for 300 gold, armor for 150 gold, sword for 50 gold, sword for 150 gold.",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said their name is Jordan\nPlayer bought shield for 50 gold. Player sold leather to the merchant. Player completed the monster hunt. Player mentioned seeing unusual weather. Player completed the delivery quest.\nPlayer mentioned seeing unusual weather. Player said they like crafting. Player com"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy hunting?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Monster hunt",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like hunting\nPlayer completed the delivery quest\nPlayer completed the escort mission. Player mentioned seeing a strange creature. Player sold iron ore to the merchant. Player asked about the bandit problem. Player asked about weapons prices.\nPlayer talked about their first adventure"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player mentioned seeing unusual weather",
+          "predicted": "Talked about their first adventure.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player talked about their first adventure\nPlayer completed the investigation\nPlayer thanked the shopkeeper for the help. Player sold leather to the merchant. Player sold iron ore to the merchant. Player sold herbs to the merchant. Player said they like fishing.\nPlayer talked about their training day"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player bought armor for 300 gold",
+          "predicted": "Player expressed frustration about the recent battle.",
+          "f1": 0.1538,
+          "type": "temporal",
+          "context_preview": "Player expressed excitement about the recent battle\nPlayer sold rare gem to the merchant. Player asked about the missing merchant. Player thanked the shopkeeper for the advice. Player thanked the shopkeeper for the information. Player asked about the dragon sighting.\nPlayer talked about when they me"
+        },
+        {
+          "question": "Did 'Player thanked the shopkeeper for the advice...' happen before or after 'Player talked about the great battle...'?",
+          "ground_truth": "before",
+          "predicted": "Before.",
+          "f1": 1.0,
+          "type": "temporal",
+          "context_preview": "Player thanked the shopkeeper for the advice\nPlayer mentioned seeing unusual weather. Player said they like crafting. Player completed the investigation. Player talked about when they met the king. Player asked about weapons prices.\nPlayer talked about the great battle. Player failed to save the vil"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information about a pet is provided.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said they like hunting\nPlayer mentioned they are from the northern village\nPlayer mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Player sold herbs to the merchant. Player asked about food prices.\nPlayer expressed excite"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about food prices\nPlayer failed to save the villager. Player talked about their hometown. Player mentioned they are from the forest settlement. Player said they like exploring. Player said they like collecting rare items.\nPlayer said they like fishing\nPlayer bought sword for 300 gold. P"
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said their name is Sam\nPlayer asked about potions prices. Player said they like fishing. Player bought shield for 300 gold. Player said they like exploring. Player failed the time trial.\nPlayer mentioned they are from the northern village\nPlayer said their name is Alex. Player bought bow for "
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "Crafting",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer said they like crafting\nPlayer talked about their hometown. "
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about armor prices\nPlayer bought sword for 300 gold. Player said their name is Morgan. Player said they like fishing. Player thanked the shopkeeper for the discount. Player said their name is Taylor.\nPlayer sold leather to the merchant\nPlayer bought armor for 50 gold\nPlayer expressed ex"
+        },
+        {
+          "question": "Where is the player from?",
+          "ground_truth": "the mountain fortress",
+          "predicted": "1. The capital city\n2. The northern village\n3. The forest settlement\n4. The mountain fortress\n5. The coastal town",
+          "f1": 0.2609,
+          "type": "single-hop",
+          "context_preview": "Player mentioned they are from the capital city\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer mentioned they are from the forest settlement. Player ment"
+        },
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Alex",
+          "predicted": "Sam \nTaylor \nAlex \nJordan \nMorgan",
+          "f1": 0.3333,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer sold iron ore to the merchant. Player completed the investigation. Player bought potion for 200 gold. Player mentioned seeing suspicious travelers. Player said their name is Taylor.\nPlayer thanked the shopkeeper for the advice. Player expressed joy about the rece"
+        },
+        {
+          "question": "How much did the bow cost?",
+          "ground_truth": "100 gold",
+          "predicted": "150 gold, 300 gold, 50 gold, 100 gold, 150 gold, 50 gold, 200 gold, 150 gold",
+          "f1": 0.2222,
+          "type": "single-hop",
+          "context_preview": "Player bought bow for 150 gold\nPlayer asked about weapons prices\nPlayer mentioned seeing suspicious travelers. Player mentioned seeing armed soldiers. Player mentioned they are from the northern village. Player bought bow for 300 gold. Player said their name is Taylor.\nPlayer bought shield for 50 go"
+        },
+        {
+          "question": "What did Sam buy?",
+          "ground_truth": "herbs",
+          "predicted": "Shield (50 gold), armor (150 gold), shield (200 gold), sword (200 gold)",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said their name is Sam\nPlayer bought shield for 50 gold. Player sold leather to the merchant. Player completed the monster hunt. Player mentioned seeing unusual weather. Player completed the delivery quest.\nPlayer said their name is Alex. Player bought bow for 100 gold. Player thanked the sho"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy fishing?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Haunted mine",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like fishing\nPlayer completed the escort mission. Player asked about armor prices. Player asked about the haunted mine. Player completed the monster hunt. Player said they like fishing.\nPlayer bought sword for 50 gold. Player asked about potions prices. Player mentioned they are fro"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player bought armor for 50 gold",
+          "predicted": "Talked about their first adventure.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player talked about their first adventure\nPlayer completed the investigation\nPlayer thanked the shopkeeper for the help. Player sold leather to the merchant. Player sold iron ore to the merchant. Player sold herbs to the merchant. Player said they like fishing.\nPlayer talked about their training day"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player asked about magical items prices",
+          "predicted": "Player talked about the great battle.",
+          "f1": 0.3333,
+          "type": "temporal",
+          "context_preview": "Player expressed excitement about the recent battle\nPlayer sold rare gem to the merchant. Player asked about the missing merchant. Player thanked the shopkeeper for the advice. Player thanked the shopkeeper for the information. Player asked about the dragon sighting.\nPlayer talked about when they me"
+        },
+        {
+          "question": "Did 'Player thanked the shopkeeper for the advice...' happen before or after 'Player thanked the shopkeeper for the information...'?",
+          "ground_truth": "before",
+          "predicted": "Before.",
+          "f1": 1.0,
+          "type": "temporal",
+          "context_preview": "Player thanked the shopkeeper for the information\nPlayer sold rare gem to the merchant. Player asked about the missing merchant. Player thanked the shopkeeper for the advice. Player thanked the shopkeeper for the information. Player asked about the dragon sighting.\nPlayer failed the time trial. Play"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information is available about the player having a pet.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said they like hunting\nPlayer mentioned they are from the northern village\nPlayer mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Player sold herbs to the merchant. Player asked about food prices.\nPlayer expressed excite"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "Unknown",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about food prices\nPlayer failed to save the villager. Player talked about their hometown. Player mentioned they are from the forest settlement. Player said they like exploring. Player said they like collecting rare items.\nPlayer said they like fishing\nPlayer bought sword for 300 gold. P"
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said their name is Sam\nPlayer asked about potions prices. Player said they like fishing. Player bought shield for 300 gold. Player said they like exploring. Player failed the time trial.\nPlayer mentioned they are from the northern village\nPlayer said their name is Alex. Player bought bow for "
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "Crafting",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer said they like crafting\nPlayer talked about their hometown. "
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about armor prices\nPlayer bought sword for 300 gold. Player said their name is Morgan. Player said they like fishing. Player thanked the shopkeeper for the discount. Player said their name is Taylor.\nPlayer sold leather to the merchant\nPlayer bought armor for 50 gold\nPlayer expressed ex"
+        },
+        {
+          "question": "How much did the potion cost?",
+          "ground_truth": "150 gold",
+          "predicted": "200, 150, 150, 150, 300",
+          "f1": 0.2857,
+          "type": "single-hop",
+          "context_preview": "Player asked about potions prices\nPlayer sold iron ore to the merchant. Player completed the investigation. Player bought potion for 200 gold. Player mentioned seeing suspicious travelers. Player said their name is Taylor.\nPlayer bought potion for 150 gold\nPlayer talked about their hometown. Player "
+        },
+        {
+          "question": "How much did the armor cost?",
+          "ground_truth": "150 gold",
+          "predicted": "100, 150, 100, 150, 100, 150",
+          "f1": 0.25,
+          "type": "single-hop",
+          "context_preview": "Player asked about armor prices\nPlayer bought shield for 300 gold\nPlayer bought sword for 50 gold. Player asked about potions prices. Player mentioned they are from the mountain fortress. Player thanked the shopkeeper for the information. Player said they like fishing.\nPlayer mentioned seeing armed "
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "fishing",
+          "predicted": "Fishing, hunting, crafting.",
+          "f1": 0.5,
+          "type": "single-hop",
+          "context_preview": "Player talked about their first adventure\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer expressed joy about their progress\nPlayer said they like hunting"
+        },
+        {
+          "question": "What did Morgan buy?",
+          "ground_truth": "potions",
+          "predicted": "Shield (50 gold, 300 gold, 300 gold, 200 gold), armor (50 gold, 150 gold), potion (150 gold), sword (300 gold)",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said their name is Morgan\nPlayer bought shield for 50 gold. Player sold leather to the merchant. Player completed the monster hunt. Player mentioned seeing unusual weather. Player completed the delivery quest.\nPlayer thanked the shopkeeper for the information. Player mentioned they are from t"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy fishing?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Haunted mine",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like fishing\nPlayer completed the escort mission. Player asked about armor prices. Player asked about the haunted mine. Player completed the monster hunt. Player said they like fishing.\nPlayer bought sword for 50 gold. Player asked about potions prices. Player mentioned they are fro"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player thanked the shopkeeper for the information",
+          "predicted": "Talked about their first adventure.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player talked about their first adventure\nPlayer completed the investigation\nPlayer thanked the shopkeeper for the help. Player sold leather to the merchant. Player sold iron ore to the merchant. Player sold herbs to the merchant. Player said they like fishing.\nPlayer talked about their training day"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player completed the monster hunt",
+          "predicted": "Player expressed frustration about the recent battle.",
+          "f1": 0.3333,
+          "type": "temporal",
+          "context_preview": "Player expressed excitement about the recent battle\nPlayer sold rare gem to the merchant. Player asked about the missing merchant. Player thanked the shopkeeper for the advice. Player thanked the shopkeeper for the information. Player asked about the dragon sighting.\nPlayer talked about when they me"
+        },
+        {
+          "question": "Did 'Player mentioned they are from the northern villag...' happen before or after 'Player expressed curiosity about the village probl...'?",
+          "ground_truth": "before",
+          "predicted": "Before.",
+          "f1": 1.0,
+          "type": "temporal",
+          "context_preview": "Player mentioned they are from the northern village\nPlayer expressed curiosity about the village problems\nPlayer mentioned seeing armed soldiers. Player asked about armor prices. Player thanked the shopkeeper for the advice. Player mentioned they are from the northern village. Player thanked the sho"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information about the player's pet is available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said they like hunting\nPlayer mentioned they are from the northern village\nPlayer mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Player sold herbs to the merchant. Player asked about food prices.\nPlayer expressed excite"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about food prices\nPlayer failed to save the villager. Player talked about their hometown. Player mentioned they are from the forest settlement. Player said they like exploring. Player said they like collecting rare items.\nPlayer said they like fishing\nPlayer bought sword for 300 gold. P"
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said their name is Sam\nPlayer asked about potions prices. Player said they like fishing. Player bought shield for 300 gold. Player said they like exploring. Player failed the time trial.\nPlayer mentioned they are from the northern village\nPlayer said their name is Alex. Player bought bow for "
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "Crafting",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer said they like crafting\nPlayer talked about their hometown. "
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about armor prices\nPlayer bought sword for 300 gold. Player said their name is Morgan. Player said they like fishing. Player thanked the shopkeeper for the discount. Player said their name is Taylor.\nPlayer sold leather to the merchant\nPlayer bought armor for 50 gold\nPlayer expressed ex"
+        },
+        {
+          "question": "Where is the player from?",
+          "ground_truth": "the forest settlement",
+          "predicted": "1. The capital city\n2. The northern village\n3. The forest settlement\n4. The mountain fortress\n5. The coastal town",
+          "f1": 0.2609,
+          "type": "single-hop",
+          "context_preview": "Player mentioned they are from the capital city\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer mentioned they are from the forest settlement. Player ment"
+        },
+        {
+          "question": "How much did the bow cost?",
+          "ground_truth": "100 gold",
+          "predicted": "150, 300, 50, 200, 100, 150",
+          "f1": 0.25,
+          "type": "single-hop",
+          "context_preview": "Player bought bow for 150 gold\nPlayer asked about weapons prices\nPlayer mentioned seeing suspicious travelers. Player mentioned seeing armed soldiers. Player mentioned they are from the northern village. Player bought bow for 300 gold. Player said their name is Taylor.\nPlayer bought shield for 50 go"
+        },
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Sam",
+          "predicted": "Sam \nTaylor \nAlex \nJordan \nMorgan",
+          "f1": 0.3333,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer sold iron ore to the merchant. Player completed the investigation. Player bought potion for 200 gold. Player mentioned seeing suspicious travelers. Player said their name is Taylor.\nPlayer thanked the shopkeeper for the advice. Player expressed joy about the rece"
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "hunting",
+          "predicted": "Fishing, hunting, crafting.",
+          "f1": 0.5,
+          "type": "single-hop",
+          "context_preview": "Player talked about their first adventure\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer expressed joy about their progress\nPlayer said they like hunting"
+        },
+        {
+          "question": "What did Alex buy?",
+          "ground_truth": "leather",
+          "predicted": "Sword for 150 gold, shield for 200 gold, bow for 100 gold, shield for 50 gold, sword for 50 gold.",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like crafting. Player said their name is Alex. Player asked about weapons prices. Player sold leather to the merchant. Player bought sword for 150 gold.\nPlayer thanked the shopkeeper for the advice. Player expressed joy about the recent battle. Player completed the monster hunt. Pla"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy crafting?",
+          "ground_truth": "the haunted mine",
+          "predicted": "Delivery quest",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like crafting\nPlayer completed the delivery quest\nPlayer sold herbs to the merchant\nPlayer completed the escort mission. Player asked about armor prices. Player asked about the haunted mine. Player completed the monster hunt. Player said they like fishing.\nPlayer bought sword for 20"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player asked about the haunted mine",
+          "predicted": "Talked about their first adventure.",
+          "f1": 0.1818,
+          "type": "temporal",
+          "context_preview": "Player talked about their first adventure\nPlayer completed the investigation\nPlayer thanked the shopkeeper for the help. Player sold leather to the merchant. Player sold iron ore to the merchant. Player sold herbs to the merchant. Player said they like fishing.\nPlayer talked about their training day"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player mentioned seeing a strange creature",
+          "predicted": "Player expressed frustration about the recent battle.",
+          "f1": 0.1538,
+          "type": "temporal",
+          "context_preview": "Player expressed excitement about the recent battle\nPlayer sold rare gem to the merchant. Player asked about the missing merchant. Player thanked the shopkeeper for the advice. Player thanked the shopkeeper for the information. Player asked about the dragon sighting.\nPlayer talked about when they me"
+        },
+        {
+          "question": "Did 'Player sold leather to the merchant...' happen before or after 'Player talked about their hometown...'?",
+          "ground_truth": "before",
+          "predicted": "Before.",
+          "f1": 1.0,
+          "type": "temporal",
+          "context_preview": "Player sold leather to the merchant\nPlayer talked about their hometown\nPlayer mentioned seeing unusual weather. Player said they like crafting. Player completed the investigation. Player talked about when they met the king. Player asked about weapons prices.\nPlayer said their name is Alex. Player th"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information about a pet is mentioned.",
+          "f1": 0.2222,
+          "type": "adversarial",
+          "context_preview": "Player said they like hunting\nPlayer mentioned they are from the northern village\nPlayer mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Player sold herbs to the merchant. Player asked about food prices.\nPlayer expressed excite"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about food prices\nPlayer failed to save the villager. Player talked about their hometown. Player mentioned they are from the forest settlement. Player said they like exploring. Player said they like collecting rare items.\nPlayer said they like fishing\nPlayer bought sword for 300 gold. P"
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said their name is Sam\nPlayer asked about potions prices. Player said they like fishing. Player bought shield for 300 gold. Player said they like exploring. Player failed the time trial.\nPlayer mentioned they are from the northern village\nPlayer said their name is Alex. Player bought bow for "
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "Crafting",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer said they like crafting\nPlayer talked about their hometown. "
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about armor prices\nPlayer bought sword for 300 gold. Player said their name is Morgan. Player said they like fishing. Player thanked the shopkeeper for the discount. Player said their name is Taylor.\nPlayer sold leather to the merchant\nPlayer bought armor for 50 gold\nPlayer expressed ex"
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "exploring",
+          "predicted": "Fishing, hunting, crafting.",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player talked about their first adventure\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer expressed joy about their progress\nPlayer said they like hunting"
+        },
+        {
+          "question": "How much did the sword cost?",
+          "ground_truth": "150 gold",
+          "predicted": "50, 100, 150, 150, 300, 300, 300, 50, 100",
+          "f1": 0.1818,
+          "type": "single-hop",
+          "context_preview": "Player bought sword for 150 gold\nPlayer asked about weapons prices\nPlayer sold old sword to the merchant. Player thanked the shopkeeper for the advice. Player said they like exploring. Player talked about their hometown. Player thanked the shopkeeper for the discount.\nPlayer bought armor for 150 gol"
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "hunting",
+          "predicted": "Fishing, hunting, crafting.",
+          "f1": 0.5,
+          "type": "single-hop",
+          "context_preview": "Player talked about their first adventure\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer expressed joy about their progress\nPlayer said they like hunting"
+        },
+        {
+          "question": "What did Alex buy?",
+          "ground_truth": "armor",
+          "predicted": "- Sword for 150 gold\n- Shield for 200 gold\n- Bow for 100 gold\n- Shield for 50 gold\n- Sword for 50 gold\n- Potion for 200 gold",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like crafting. Player said their name is Alex. Player asked about weapons prices. Player sold leather to the merchant. Player bought sword for 150 gold.\nPlayer thanked the shopkeeper for the advice. Player expressed joy about the recent battle. Player completed the monster hunt. Pla"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy fishing?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Haunted mine",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like fishing\nPlayer completed the escort mission. Player asked about armor prices. Player asked about the haunted mine. Player completed the monster hunt. Player said they like fishing.\nPlayer bought sword for 50 gold. Player asked about potions prices. Player mentioned they are fro"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player asked about food prices",
+          "predicted": "Talked about their first adventure.",
+          "f1": 0.2,
+          "type": "temporal",
+          "context_preview": "Player talked about their first adventure\nPlayer completed the investigation\nPlayer thanked the shopkeeper for the help. Player sold leather to the merchant. Player sold iron ore to the merchant. Player sold herbs to the merchant. Player said they like fishing.\nPlayer talked about their training day"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player mentioned seeing a strange creature",
+          "predicted": "Player talked about the great battle.",
+          "f1": 0.1667,
+          "type": "temporal",
+          "context_preview": "Player expressed excitement about the recent battle\nPlayer sold rare gem to the merchant. Player asked about the missing merchant. Player thanked the shopkeeper for the advice. Player thanked the shopkeeper for the information. Player asked about the dragon sighting.\nPlayer talked about when they me"
+        },
+        {
+          "question": "Did 'Player said they like fishing...' happen before or after 'Player talked about when they met the king...'?",
+          "ground_truth": "before",
+          "predicted": "Before.",
+          "f1": 1.0,
+          "type": "temporal",
+          "context_preview": "Player talked about when they met the king\nPlayer said they like fishing\nPlayer talked about their hometown. Player asked about potions prices. Player asked about the dragon sighting. Player expressed frustration about the new equipment. Player mentioned seeing suspicious travelers.\nPlayer mentioned"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information about a pet is provided.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said they like hunting\nPlayer mentioned they are from the northern village\nPlayer mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Player sold herbs to the merchant. Player asked about food prices.\nPlayer expressed excite"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about food prices\nPlayer failed to save the villager. Player talked about their hometown. Player mentioned they are from the forest settlement. Player said they like exploring. Player said they like collecting rare items.\nPlayer said they like fishing\nPlayer bought sword for 300 gold. P"
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said their name is Sam\nPlayer asked about potions prices. Player said they like fishing. Player bought shield for 300 gold. Player said they like exploring. Player failed the time trial.\nPlayer mentioned they are from the northern village\nPlayer said their name is Alex. Player bought bow for "
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "Crafting",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer said they like crafting\nPlayer talked about their hometown. "
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about armor prices\nPlayer bought sword for 300 gold. Player said their name is Morgan. Player said they like fishing. Player thanked the shopkeeper for the discount. Player said their name is Taylor.\nPlayer sold leather to the merchant\nPlayer bought armor for 50 gold\nPlayer expressed ex"
+        }
+      ]
+    },
+    {
+      "strategy": "LRU",
+      "f1_scores": {
+        "single-hop": 0.22275132275132276,
+        "multi-hop": 0.014285714285714287,
+        "temporal": 0.22424242424242422,
+        "adversarial": 0.008888888888888889
+      },
+      "overall_f1": 0.11754208754208754,
+      "memory_count": 76,
+      "memory_bytes_mb": 0.131936,
+      "avg_latency_ms": 5.898185000205558,
+      "consolidation_ratio": 0.9473684210526315,
+      "qa_details": [
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Jordan",
+          "predicted": "Sam \nTaylor \nJordan \nAlex",
+          "f1": 0.4,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer mentioned seeing unusual weather\nPlayer thanked the shopkeeper for the information\nPlayer expressed excitement about the village problems. Player failed to defeat the boss. Player bought sword for 300 gold. Player talked about their hometown. Player said their na"
+        },
+        {
+          "question": "How much did the shield cost?",
+          "ground_truth": "150 gold",
+          "predicted": "100, 150, 300, 50, 150, 50, 200",
+          "f1": 0.2222,
+          "type": "single-hop",
+          "context_preview": "Player bought shield for 100 gold\nPlayer asked about potions prices\nPlayer completed the delivery quest. Player mentioned they are from the coastal town. Player said their name is Morgan. Player thanked the shopkeeper for the help. Player bought shield for 150 gold.\nPlayer sold leather to the mercha"
+        },
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Morgan",
+          "predicted": "Sam \nTaylor \nJordan \nAlex",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer mentioned seeing unusual weather\nPlayer thanked the shopkeeper for the information\nPlayer expressed excitement about the village problems. Player failed to defeat the boss. Player bought sword for 300 gold. Player talked about their hometown. Player said their na"
+        },
+        {
+          "question": "How much did the armor cost?",
+          "ground_truth": "300 gold",
+          "predicted": "300, 50, 150, 150, 100",
+          "f1": 0.2857,
+          "type": "single-hop",
+          "context_preview": "Player asked about armor prices\nPlayer sold old sword to the merchant\nPlayer bought shield for 200 gold\nPlayer said their name is Jordan. Player mentioned they are from the forest settlement. Player talked about the great battle. Player bought armor for 300 gold. Player bought armor for 50 gold.\nPla"
+        },
+        {
+          "question": "Where is the player from?",
+          "ground_truth": "the capital city",
+          "predicted": "Coastal town, Forest settlement, Northern village.",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player mentioned they are from the coastal town\nPlayer mentioned seeing unusual weather\nPlayer said their name is Alex\nPlayer talked about their hometown\nPlayer said their name is Jordan. Player mentioned they are from the forest settlement. Player talked about the great battle. Player bought armor "
+        },
+        {
+          "question": "What did Jordan buy?",
+          "ground_truth": "potion",
+          "predicted": "Armor (300, 50, 100, 150), bow (50), sword (100), potion (100), shield (200)",
+          "f1": 0.1429,
+          "type": "multi-hop",
+          "context_preview": "Player said their name is Jordan. Player mentioned they are from the forest settlement. Player talked about the great battle. Player bought armor for 300 gold. Player bought armor for 50 gold.\nPlayer asked about magical items prices\nPlayer bought bow for 50 gold\nPlayer talked about when they met the"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy hunting?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Monster hunt",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like hunting\nPlayer completed the delivery quest\nPlayer asked about the dragon sighting\nPlayer sold herbs to the merchant. Player failed the time trial. Player thanked the shopkeeper for the advice. Player expressed joy about the village problems. Player completed the monster hunt.\n"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player mentioned seeing unusual weather",
+          "predicted": "Failed to save the villager.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player talked about their first adventure. Player said their name is Alex. Player talked about the great battle. Player failed to save the villager. Player mentioned seeing a meteor.\nPlayer expressed frustration about their progress\nPlayer thanked the shopkeeper for the information\nPlayer talked abo"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player bought armor for 300 gold",
+          "predicted": "Player expressed concern about their progress.",
+          "f1": 0.1667,
+          "type": "temporal",
+          "context_preview": "Player expressed joy about the recent battle\nPlayer mentioned seeing suspicious travelers\nPlayer asked about the dragon sighting\nPlayer talked about when they met the king\nPlayer asked about weapons prices. Player talked about the great battle. Player asked about armor prices. Player asked about the"
+        },
+        {
+          "question": "Did 'Player thanked the shopkeeper for the advice...' happen before or after 'Player talked about the great battle...'?",
+          "ground_truth": "before",
+          "predicted": "After.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player thanked the shopkeeper for the information. Player expressed concern about the new equipment. Player asked about the bandit problem. Player thanked the shopkeeper for the discount. Player talked about the great battle.\nPlayer talked about when they met the king\nPlayer expressed joy about the "
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information about a pet is provided.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing a strange creature\nPlayer said their name is Sam\nPlayer thanked the shopkeeper for the information. Player said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant.\nPlayer mentioned they are from the mount"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "Unknown",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer talked about their hometown\nPlayer thanked the shopkeeper for the help\nPlayer said they like collecting ra"
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said they like fishing. Player said their name is Alex. Player said their name is Sam. Player bought bow for 150 gold. Player expressed concern about their progress.\nPlayer mentioned they are from the northern village\nPlayer expressed joy about their progress\nPlayer said their name is Taylor\n"
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "Unknown",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer sold leather to the merchant\nPlayer mentioned they are from the forest settlement. Player failed the stealth mission. Player talked about their training days. Player said they like crafting. Player completed the escort mission.\nPlayer expressed ex"
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about armor prices\nPlayer mentioned they are from the mountain fortress\nPlayer mentioned seeing unusual weather\nPlayer asked about the stolen artifact\nPlayer sold old sword to the merchant\nPlayer bought shield for 50 gold\nPlayer said their name is Jordan. Player mentioned they are from "
+        },
+        {
+          "question": "Where is the player from?",
+          "ground_truth": "the mountain fortress",
+          "predicted": "Coastal town, Forest settlement, Northern village.",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player mentioned they are from the coastal town\nPlayer mentioned seeing unusual weather\nPlayer said their name is Alex\nPlayer talked about their hometown\nPlayer said their name is Jordan. Player mentioned they are from the forest settlement. Player talked about the great battle. Player bought armor "
+        },
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Alex",
+          "predicted": "Sam, Taylor, Jordan, Alex",
+          "f1": 0.4,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer mentioned seeing unusual weather\nPlayer thanked the shopkeeper for the information\nPlayer expressed excitement about the village problems. Player failed to defeat the boss. Player bought sword for 300 gold. Player talked about their hometown. Player said their na"
+        },
+        {
+          "question": "How much did the bow cost?",
+          "ground_truth": "100 gold",
+          "predicted": "50, 300, 150, 50, 150, 150, 300",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player bought bow for 50 gold\nPlayer asked about armor prices\nPlayer mentioned they are from the northern village. Player bought bow for 300 gold. Player said their name is Taylor. Player said their name is Sam. Player asked about the dragon sighting.\nPlayer sold herbs to the merchant\nPlayer asked a"
+        },
+        {
+          "question": "What did Sam buy?",
+          "ground_truth": "herbs",
+          "predicted": "- Sword \n- Leather \n- Bow (100 gold, 150 gold, 300 gold)\n- Shield \n- Potion",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player asked about weapons prices. Player sold old sword to the merchant. Player said their name is Sam. Player sold leather to the merchant. Player bought bow for 100 gold.\nPlayer said their name is Sam\nPlayer bought shield for 200 gold\nPlayer sold rare gem to the merchant\nPlayer mentioned they are"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy fishing?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Delivery quest",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like fishing. Player completed the delivery quest. Player talked about their hometown. Player mentioned seeing a strange creature. Player completed the escort mission.\nPlayer sold herbs to the merchant\nPlayer mentioned they are from the coastal town\nPlayer said they like collecting "
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player bought armor for 50 gold",
+          "predicted": "Failed to save the villager.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player talked about their first adventure. Player said their name is Alex. Player talked about the great battle. Player failed to save the villager. Player mentioned seeing a meteor.\nPlayer expressed frustration about their progress\nPlayer thanked the shopkeeper for the information\nPlayer talked abo"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player asked about magical items prices",
+          "predicted": "Player expressed concern about their progress.",
+          "f1": 0.3333,
+          "type": "temporal",
+          "context_preview": "Player expressed joy about the recent battle\nPlayer mentioned seeing suspicious travelers\nPlayer asked about the dragon sighting\nPlayer talked about when they met the king\nPlayer asked about weapons prices. Player talked about the great battle. Player asked about armor prices. Player asked about the"
+        },
+        {
+          "question": "Did 'Player thanked the shopkeeper for the advice...' happen before or after 'Player thanked the shopkeeper for the information...'?",
+          "ground_truth": "before",
+          "predicted": "After.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player thanked the shopkeeper for the information\nPlayer failed the time trial. Player thanked the shopkeeper for the help. Player thanked the shopkeeper for the information. Player thanked the shopkeeper for the help. Player completed the monster hunt.\nPlayer sold iron ore to the merchant\nPlayer me"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "None",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing a strange creature\nPlayer said their name is Sam\nPlayer thanked the shopkeeper for the information. Player said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant.\nPlayer mentioned they are from the mount"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "Unknown",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer talked about their hometown\nPlayer thanked the shopkeeper for the help\nPlayer said they like collecting ra"
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said they like fishing. Player said their name is Alex. Player said their name is Sam. Player bought bow for 150 gold. Player expressed concern about their progress.\nPlayer mentioned they are from the northern village\nPlayer expressed joy about their progress\nPlayer said their name is Taylor\n"
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "Unknown",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer sold leather to the merchant\nPlayer mentioned they are from the forest settlement. Player failed the stealth mission. Player talked about their training days. Player said they like crafting. Player completed the escort mission.\nPlayer expressed ex"
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about armor prices\nPlayer mentioned they are from the mountain fortress\nPlayer mentioned seeing unusual weather\nPlayer asked about the stolen artifact\nPlayer sold old sword to the merchant\nPlayer bought shield for 50 gold\nPlayer said their name is Jordan. Player mentioned they are from "
+        },
+        {
+          "question": "How much did the potion cost?",
+          "ground_truth": "150 gold",
+          "predicted": "300, 150, 100, 100, 200",
+          "f1": 0.2857,
+          "type": "single-hop",
+          "context_preview": "Player asked about potions prices\nPlayer bought shield for 200 gold\nPlayer completed the delivery quest. Player bought potion for 300 gold. Player bought sword for 200 gold. Player thanked the shopkeeper for the information. Player completed the treasure map.\nPlayer sold herbs to the merchant\nPlayer"
+        },
+        {
+          "question": "How much did the armor cost?",
+          "ground_truth": "150 gold",
+          "predicted": "300, 50, 150, 150, 100",
+          "f1": 0.2857,
+          "type": "single-hop",
+          "context_preview": "Player asked about armor prices\nPlayer sold old sword to the merchant\nPlayer bought shield for 200 gold\nPlayer said their name is Jordan. Player mentioned they are from the forest settlement. Player talked about the great battle. Player bought armor for 300 gold. Player bought armor for 50 gold.\nPla"
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "fishing",
+          "predicted": "Fishing, crafting, exploring.",
+          "f1": 0.5,
+          "type": "single-hop",
+          "context_preview": "Player expressed joy about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer talked about when they met the king\nPlayer said they like explor"
+        },
+        {
+          "question": "What did Morgan buy?",
+          "ground_truth": "potions",
+          "predicted": "Shield (300 gold), Potion (150 gold), Bow (50 gold), Shield (200 gold), Sword (300 gold)",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player thanked the shopkeeper for the information. Player mentioned they are from the northern village. Player bought shield for 300 gold. Player said their name is Morgan. Player bought potion for 150 gold.\nPlayer sold rare gem to the merchant\nPlayer bought bow for 50 gold\nPlayer asked about magica"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy fishing?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Delivery quest",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like fishing. Player completed the delivery quest. Player talked about their hometown. Player mentioned seeing a strange creature. Player completed the escort mission.\nPlayer sold herbs to the merchant\nPlayer mentioned they are from the coastal town\nPlayer said they like collecting "
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player thanked the shopkeeper for the information",
+          "predicted": "Failed to save the villager.",
+          "f1": 0.1667,
+          "type": "temporal",
+          "context_preview": "Player talked about their first adventure. Player said their name is Alex. Player talked about the great battle. Player failed to save the villager. Player mentioned seeing a meteor.\nPlayer expressed frustration about their progress\nPlayer thanked the shopkeeper for the information\nPlayer talked abo"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player completed the monster hunt",
+          "predicted": "Player expressed concern about their progress.",
+          "f1": 0.1818,
+          "type": "temporal",
+          "context_preview": "Player expressed joy about the recent battle\nPlayer mentioned seeing suspicious travelers\nPlayer asked about the dragon sighting\nPlayer talked about when they met the king\nPlayer asked about weapons prices. Player talked about the great battle. Player asked about armor prices. Player asked about the"
+        },
+        {
+          "question": "Did 'Player mentioned they are from the northern villag...' happen before or after 'Player expressed curiosity about the village probl...'?",
+          "ground_truth": "before",
+          "predicted": "Before.",
+          "f1": 1.0,
+          "type": "temporal",
+          "context_preview": "Player mentioned they are from the northern village\nPlayer asked about the dragon sighting\nPlayer said they like exploring\nPlayer talked about when they met the king\nPlayer thanked the shopkeeper for the help. Player mentioned seeing suspicious travelers. Player expressed joy about the recent battle"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "None",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing a strange creature\nPlayer said their name is Sam\nPlayer thanked the shopkeeper for the information. Player said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant.\nPlayer mentioned they are from the mount"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "Unknown",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer talked about their hometown\nPlayer thanked the shopkeeper for the help\nPlayer said they like collecting ra"
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said they like fishing. Player said their name is Alex. Player said their name is Sam. Player bought bow for 150 gold. Player expressed concern about their progress.\nPlayer mentioned they are from the northern village\nPlayer expressed joy about their progress\nPlayer said their name is Taylor\n"
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "Unknown.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer sold leather to the merchant\nPlayer mentioned they are from the forest settlement. Player failed the stealth mission. Player talked about their training days. Player said they like crafting. Player completed the escort mission.\nPlayer expressed ex"
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about armor prices\nPlayer mentioned they are from the mountain fortress\nPlayer mentioned seeing unusual weather\nPlayer asked about the stolen artifact\nPlayer sold old sword to the merchant\nPlayer bought shield for 50 gold\nPlayer said their name is Jordan. Player mentioned they are from "
+        },
+        {
+          "question": "Where is the player from?",
+          "ground_truth": "the forest settlement",
+          "predicted": "Coastal town, Forest settlement, Northern village.",
+          "f1": 0.4444,
+          "type": "single-hop",
+          "context_preview": "Player mentioned they are from the coastal town\nPlayer mentioned seeing unusual weather\nPlayer said their name is Alex\nPlayer talked about their hometown\nPlayer said their name is Jordan. Player mentioned they are from the forest settlement. Player talked about the great battle. Player bought armor "
+        },
+        {
+          "question": "How much did the bow cost?",
+          "ground_truth": "100 gold",
+          "predicted": "50, 300, 150, 50, 150, 150, 300, 300, 150, 50",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player bought bow for 50 gold\nPlayer asked about armor prices\nPlayer mentioned they are from the northern village. Player bought bow for 300 gold. Player said their name is Taylor. Player said their name is Sam. Player asked about the dragon sighting.\nPlayer sold herbs to the merchant\nPlayer asked a"
+        },
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Sam",
+          "predicted": "Sam, Taylor, Jordan, Alex",
+          "f1": 0.4,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer mentioned seeing unusual weather\nPlayer thanked the shopkeeper for the information\nPlayer expressed excitement about the village problems. Player failed to defeat the boss. Player bought sword for 300 gold. Player talked about their hometown. Player said their na"
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "hunting",
+          "predicted": "Fishing, crafting, exploring.",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player expressed joy about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer talked about when they met the king\nPlayer said they like explor"
+        },
+        {
+          "question": "What did Alex buy?",
+          "ground_truth": "leather",
+          "predicted": "Potion (100 gold), bow (50 gold), bow (150 gold), potion (200 gold)",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player completed the monster hunt. Player said their name is Alex. Player expressed frustration about the recent battle. Player sold leather to the merchant. Player bought potion for 100 gold.\nPlayer asked about magical items prices\nPlayer said their name is Alex\nPlayer sold rare gem to the merchant"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy crafting?",
+          "ground_truth": "the haunted mine",
+          "predicted": "Delivery quest",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like crafting\nPlayer completed the delivery quest\nPlayer asked about magical items prices\nPlayer sold old sword to the merchant\nPlayer expressed frustration about the new equipment. Player mentioned seeing suspicious travelers. Player expressed curiosity about the village problems. "
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player asked about the haunted mine",
+          "predicted": "Failed to save the villager.",
+          "f1": 0.1818,
+          "type": "temporal",
+          "context_preview": "Player talked about their first adventure. Player said their name is Alex. Player talked about the great battle. Player failed to save the villager. Player mentioned seeing a meteor.\nPlayer expressed frustration about their progress\nPlayer thanked the shopkeeper for the information\nPlayer talked abo"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player mentioned seeing a strange creature",
+          "predicted": "Player expressed concern about their progress.",
+          "f1": 0.1667,
+          "type": "temporal",
+          "context_preview": "Player expressed joy about the recent battle\nPlayer mentioned seeing suspicious travelers\nPlayer asked about the dragon sighting\nPlayer talked about when they met the king\nPlayer asked about weapons prices. Player talked about the great battle. Player asked about armor prices. Player asked about the"
+        },
+        {
+          "question": "Did 'Player sold leather to the merchant...' happen before or after 'Player talked about their hometown...'?",
+          "ground_truth": "before",
+          "predicted": "Before.",
+          "f1": 1.0,
+          "type": "temporal",
+          "context_preview": "Player sold leather to the merchant\nPlayer talked about their hometown\nPlayer thanked the shopkeeper for the recommendation. Player mentioned they are from the coastal town. Player thanked the shopkeeper for the information. Player asked about weapons prices. Player completed the investigation.\nPlay"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information about a pet is provided.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing a strange creature\nPlayer said their name is Sam\nPlayer thanked the shopkeeper for the information. Player said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant.\nPlayer mentioned they are from the mount"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "Unknown",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer talked about their hometown\nPlayer thanked the shopkeeper for the help\nPlayer said they like collecting ra"
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said they like fishing. Player said their name is Alex. Player said their name is Sam. Player bought bow for 150 gold. Player expressed concern about their progress.\nPlayer mentioned they are from the northern village\nPlayer expressed joy about their progress\nPlayer said their name is Taylor\n"
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "Unknown",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer sold leather to the merchant\nPlayer mentioned they are from the forest settlement. Player failed the stealth mission. Player talked about their training days. Player said they like crafting. Player completed the escort mission.\nPlayer expressed ex"
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about armor prices\nPlayer mentioned they are from the mountain fortress\nPlayer mentioned seeing unusual weather\nPlayer asked about the stolen artifact\nPlayer sold old sword to the merchant\nPlayer bought shield for 50 gold\nPlayer said their name is Jordan. Player mentioned they are from "
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "exploring",
+          "predicted": "Fishing, crafting, exploring.",
+          "f1": 0.5,
+          "type": "single-hop",
+          "context_preview": "Player expressed joy about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer talked about when they met the king\nPlayer said they like explor"
+        },
+        {
+          "question": "How much did the sword cost?",
+          "ground_truth": "150 gold",
+          "predicted": "150, 200, 200, 300, 300",
+          "f1": 0.2857,
+          "type": "single-hop",
+          "context_preview": "Player bought sword for 150 gold\nPlayer asked about potions prices\nPlayer mentioned they are from the forest settlement. Player said they like exploring. Player said they like collecting rare items. Player mentioned they are from the coastal town. Player bought sword for 200 gold.\nPlayer sold leathe"
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "hunting",
+          "predicted": "Fishing, crafting, exploring.",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player expressed joy about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer talked about when they met the king\nPlayer said they like explor"
+        },
+        {
+          "question": "What did Alex buy?",
+          "ground_truth": "armor",
+          "predicted": "Potion (100 gold), bow (50 gold), bow (150 gold), potion (200 gold)",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player completed the monster hunt. Player said their name is Alex. Player expressed frustration about the recent battle. Player sold leather to the merchant. Player bought potion for 100 gold.\nPlayer asked about magical items prices\nPlayer said their name is Alex\nPlayer sold rare gem to the merchant"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy fishing?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Delivery quest",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like fishing. Player completed the delivery quest. Player talked about their hometown. Player mentioned seeing a strange creature. Player completed the escort mission.\nPlayer sold herbs to the merchant\nPlayer mentioned they are from the coastal town\nPlayer said they like collecting "
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player asked about food prices",
+          "predicted": "Failed to save the villager.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player talked about their first adventure. Player said their name is Alex. Player talked about the great battle. Player failed to save the villager. Player mentioned seeing a meteor.\nPlayer expressed frustration about their progress\nPlayer thanked the shopkeeper for the information\nPlayer talked abo"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player mentioned seeing a strange creature",
+          "predicted": "Player expressed concern about their progress.",
+          "f1": 0.1667,
+          "type": "temporal",
+          "context_preview": "Player expressed joy about the recent battle\nPlayer mentioned seeing suspicious travelers\nPlayer asked about the dragon sighting\nPlayer talked about when they met the king\nPlayer asked about weapons prices. Player talked about the great battle. Player asked about armor prices. Player asked about the"
+        },
+        {
+          "question": "Did 'Player said they like fishing...' happen before or after 'Player talked about when they met the king...'?",
+          "ground_truth": "before",
+          "predicted": "After.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player talked about when they met the king\nPlayer said they like fishing. Player thanked the shopkeeper for the advice. Player asked about magical items prices. Player bought potion for 100 gold. Player mentioned seeing a strange creature.\nPlayer asked about the dragon sighting\nPlayer mentioned they"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information about a pet is mentioned.",
+          "f1": 0.2222,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing a strange creature\nPlayer said their name is Sam\nPlayer thanked the shopkeeper for the information. Player said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant.\nPlayer mentioned they are from the mount"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "Unknown",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer talked about their hometown\nPlayer thanked the shopkeeper for the help\nPlayer said they like collecting ra"
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said they like fishing. Player said their name is Alex. Player said their name is Sam. Player bought bow for 150 gold. Player expressed concern about their progress.\nPlayer mentioned they are from the northern village\nPlayer expressed joy about their progress\nPlayer said their name is Taylor\n"
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "Unknown",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer sold leather to the merchant\nPlayer mentioned they are from the forest settlement. Player failed the stealth mission. Player talked about their training days. Player said they like crafting. Player completed the escort mission.\nPlayer expressed ex"
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about armor prices\nPlayer mentioned they are from the mountain fortress\nPlayer mentioned seeing unusual weather\nPlayer asked about the stolen artifact\nPlayer sold old sword to the merchant\nPlayer bought shield for 50 gold\nPlayer said their name is Jordan. Player mentioned they are from "
+        }
+      ]
+    },
+    {
+      "strategy": "Importance",
+      "f1_scores": {
+        "single-hop": 0.23621933621933622,
+        "multi-hop": 0.030405405405405407,
+        "temporal": 0.16484848484848486,
+        "adversarial": 0.092
+      },
+      "overall_f1": 0.13086830661830662,
+      "memory_count": 76,
+      "memory_bytes_mb": 0.131936,
+      "avg_latency_ms": 5.5548750000525615,
+      "consolidation_ratio": 0.9605263157894737,
+      "qa_details": [
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Jordan",
+          "predicted": "Sam, Alex, Taylor, Jordan, Morgan",
+          "f1": 0.3333,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer completed the monster hunt. Player said their name is Alex. Player expressed frustration about the recent battle. Player sold leather to the merchant. Player bought potion for 100 gold.\nPlayer said their name is Taylor. Player thanked the shopkeeper for the infor"
+        },
+        {
+          "question": "How much did the shield cost?",
+          "ground_truth": "150 gold",
+          "predicted": "50, 150, 200, 200, 50, 50, 300, 300, 50",
+          "f1": 0.1818,
+          "type": "single-hop",
+          "context_preview": "Player bought shield for 150 gold\nPlayer asked about armor prices. Player thanked the shopkeeper for the advice. Player mentioned they are from the northern village. Player thanked the shopkeeper for the discount. Player failed the stealth mission.\nPlayer mentioned they are from the northern village"
+        },
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Morgan",
+          "predicted": "Sam, Alex, Taylor, Jordan, Morgan",
+          "f1": 0.3333,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer completed the monster hunt. Player said their name is Alex. Player expressed frustration about the recent battle. Player sold leather to the merchant. Player bought potion for 100 gold.\nPlayer said their name is Taylor. Player thanked the shopkeeper for the infor"
+        },
+        {
+          "question": "How much did the armor cost?",
+          "ground_truth": "300 gold",
+          "predicted": "50, 300, 150, 150, 150, 50, 50, 100",
+          "f1": 0.2,
+          "type": "single-hop",
+          "context_preview": "Player asked about potions prices. Player bought shield for 50 gold. Player failed the stealth mission. Player completed the escort mission. Player asked about armor prices.\nPlayer said their name is Jordan. Player mentioned they are from the forest settlement. Player talked about the great battle. "
+        },
+        {
+          "question": "Where is the player from?",
+          "ground_truth": "the capital city",
+          "predicted": "1. Northern village\n2. Forest settlement\n3. Coastal town\n4. Capital city",
+          "f1": 0.2667,
+          "type": "single-hop",
+          "context_preview": "Player mentioned they are from the capital city\nPlayer said their name is Jordan\nPlayer said their name is Alex. Player said their name is Sam. Player bought bow for 150 gold. Player expressed concern about their progress. Player mentioned they are from the northern village.\nPlayer said their name i"
+        },
+        {
+          "question": "What did Jordan buy?",
+          "ground_truth": "potion",
+          "predicted": "Sword for 100 gold, armor for 100 gold, armor for 300 gold, armor for 50 gold, shield for 50 gold, potion for 100 gold, potion for 200 gold, bow for 100 gold, bow for 50 gold.",
+          "f1": 0.0541,
+          "type": "multi-hop",
+          "context_preview": "Player said their name is Jordan\nPlayer bought sword for 100 gold. Player said they like collecting rare items. Player sold rare gem to the merchant. Player mentioned seeing a meteor. Player bought armor for 100 gold.\nPlayer talked about when they met the king\nPlayer said their name is Jordan. Playe"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy hunting?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Monster hunt",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player mentioned seeing armed soldiers. Player asked about the missing merchant. Player completed the monster hunt. Player said they like exploring. Player asked about the dragon sighting.\nPlayer mentioned they are from the forest settlement\nPlayer completed the delivery quest\nPlayer completed the i"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player mentioned seeing unusual weather",
+          "predicted": "Completed investigation.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player completed the investigation\nPlayer said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant. Player talked about the great battle.\nPlayer said their name is Jordan\nPlayer talked about their hometown. Player thanked the sho"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player bought armor for 300 gold",
+          "predicted": "Player asked about weapons prices.",
+          "f1": 0.1818,
+          "type": "temporal",
+          "context_preview": "Player talked about when they met the king\nPlayer completed the escort mission\nPlayer mentioned seeing a strange creature\nPlayer expressed concern about the new equipment. Player asked about the bandit problem. Player thanked the shopkeeper for the discount. Player talked about the great battle. Pla"
+        },
+        {
+          "question": "Did 'Player thanked the shopkeeper for the advice...' happen before or after 'Player talked about the great battle...'?",
+          "ground_truth": "before",
+          "predicted": "After.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Player sold herbs to the merchant. Player asked about food prices.\nPlayer talked about when they met the king\nPlayer expressed concern about their progress\nPlayer said thei"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information about a pet is provided.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing a strange creature\nPlayer mentioned they are from the capital city\nPlayer completed the monster hunt. Player said their name is Alex. Player expressed frustration about the recent battle. Player sold leather to the merchant. Player bought potion for 100 gold.\nPlayer completed"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Player sold herbs to the merchant. Player asked about food prices.\nPlayer said their name is Jordan\nPlayer mentioned they are from the coastal town\nPlayer bought sword for "
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said their name is Sam\nPlayer mentioned seeing a meteor. Player talked about when they met the king. Player bought shield for 300 gold. Player thanked the shopkeeper for the information. Player bought armor for 50 gold.\nPlayer mentioned they are from the northern village\nPlayer mentioned seei"
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "None mentioned.",
+          "f1": 0.5,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer sold leather to the merchant. Player sold iron ore to the merchant. Player sold herbs to the merchant. Player said they like fishing. Player mentioned seeing unusual weather.\nPlayer mentioned they are from the capital city\nPlayer talked about when"
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said their name is Jordan. Player mentioned they are from the forest settlement. Player talked about the great battle. Player bought armor for 300 gold. Player bought armor for 50 gold.\nPlayer asked about potions prices. Player bought shield for 50 gold. Player failed the stealth mission. Pla"
+        },
+        {
+          "question": "Where is the player from?",
+          "ground_truth": "the mountain fortress",
+          "predicted": "1. Northern village\n2. Forest settlement\n3. Coastal town\n4. Capital city",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player mentioned they are from the capital city\nPlayer said their name is Jordan\nPlayer said their name is Alex. Player said their name is Sam. Player bought bow for 150 gold. Player expressed concern about their progress. Player mentioned they are from the northern village.\nPlayer said their name i"
+        },
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Alex",
+          "predicted": "Sam, Alex, Taylor, Jordan, Morgan",
+          "f1": 0.3333,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer completed the monster hunt. Player said their name is Alex. Player expressed frustration about the recent battle. Player sold leather to the merchant. Player bought potion for 100 gold.\nPlayer said their name is Taylor. Player thanked the shopkeeper for the infor"
+        },
+        {
+          "question": "How much did the bow cost?",
+          "ground_truth": "100 gold",
+          "predicted": "50, 300, 50, 100, 100, 300, 50, 100, 300",
+          "f1": 0.1818,
+          "type": "single-hop",
+          "context_preview": "Player bought bow for 50 gold\nPlayer mentioned seeing a strange creature. Player mentioned seeing armed soldiers. Player sold iron ore to the merchant. Player bought sword for 50 gold. Player asked about potions prices.\nPlayer mentioned they are from the coastal town. Player expressed excitement abo"
+        },
+        {
+          "question": "What did Sam buy?",
+          "ground_truth": "herbs",
+          "predicted": "Bow for 50 gold, shield for 200 gold, bow for 150 gold, bow for 100 gold, bow for 100 gold.",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player bought bow for 50 gold. Player asked about magical items prices. Player sold rare gem to the merchant. Player failed to defeat the boss. Player said their name is Sam.\nPlayer said their name is Sam\nPlayer bought shield for 200 gold\nPlayer sold leather to the merchant. Player mentioned they ar"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy fishing?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Delivery quest",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant. Player talked about the great battle.\nPlayer completed the delivery quest\nPlayer mentioned seeing a strange creature\nPlayer mentioned they are from the coastal town"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player bought armor for 50 gold",
+          "predicted": "Completed the investigation.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player completed the investigation\nPlayer said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant. Player talked about the great battle.\nPlayer said their name is Jordan\nPlayer talked about their hometown. Player thanked the sho"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player asked about magical items prices",
+          "predicted": "Player asked about weapons prices.",
+          "f1": 0.7273,
+          "type": "temporal",
+          "context_preview": "Player talked about when they met the king\nPlayer completed the escort mission\nPlayer mentioned seeing a strange creature\nPlayer expressed concern about the new equipment. Player asked about the bandit problem. Player thanked the shopkeeper for the discount. Player talked about the great battle. Pla"
+        },
+        {
+          "question": "Did 'Player thanked the shopkeeper for the advice...' happen before or after 'Player thanked the shopkeeper for the information...'?",
+          "ground_truth": "before",
+          "predicted": "After.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Player sold herbs to the merchant. Player asked about food prices.\nPlayer completed the investigation\nPlayer said their name is Sam\nPlayer completed the delivery quest\nPlay"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information about the player's pet is provided.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing a strange creature\nPlayer mentioned they are from the capital city\nPlayer completed the monster hunt. Player said their name is Alex. Player expressed frustration about the recent battle. Player sold leather to the merchant. Player bought potion for 100 gold.\nPlayer completed"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Player sold herbs to the merchant. Player asked about food prices.\nPlayer said their name is Jordan\nPlayer mentioned they are from the coastal town\nPlayer bought sword for "
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said their name is Sam\nPlayer mentioned seeing a meteor. Player talked about when they met the king. Player bought shield for 300 gold. Player thanked the shopkeeper for the information. Player bought armor for 50 gold.\nPlayer mentioned they are from the northern village\nPlayer mentioned seei"
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "No profession mentioned.",
+          "f1": 0.4,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer sold leather to the merchant. Player sold iron ore to the merchant. Player sold herbs to the merchant. Player said they like fishing. Player mentioned seeing unusual weather.\nPlayer mentioned they are from the capital city\nPlayer talked about when"
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said their name is Jordan. Player mentioned they are from the forest settlement. Player talked about the great battle. Player bought armor for 300 gold. Player bought armor for 50 gold.\nPlayer asked about potions prices. Player bought shield for 50 gold. Player failed the stealth mission. Pla"
+        },
+        {
+          "question": "How much did the potion cost?",
+          "ground_truth": "150 gold",
+          "predicted": "150, 100, 100, 200, 300, 300, 300, 150",
+          "f1": 0.2,
+          "type": "single-hop",
+          "context_preview": "Player bought potion for 150 gold\nPlayer asked about potions prices. Player bought shield for 50 gold. Player failed the stealth mission. Player completed the escort mission. Player asked about armor prices.\nPlayer mentioned they are from the northern village. Player bought shield for 300 gold. Play"
+        },
+        {
+          "question": "How much did the armor cost?",
+          "ground_truth": "150 gold",
+          "predicted": "50, 300, 150, 150, 150, 50, 50, 100",
+          "f1": 0.2,
+          "type": "single-hop",
+          "context_preview": "Player asked about potions prices. Player bought shield for 50 gold. Player failed the stealth mission. Player completed the escort mission. Player asked about armor prices.\nPlayer said their name is Jordan. Player mentioned they are from the forest settlement. Player talked about the great battle. "
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "fishing",
+          "predicted": "Hunting, fishing, crafting, collecting rare items.",
+          "f1": 0.2857,
+          "type": "single-hop",
+          "context_preview": "Player mentioned seeing unusual weather. Player said their name is Morgan. Player talked about their hometown. Player expressed curiosity about the village problems. Player said they like collecting rare items.\nPlayer completed the investigation\nPlayer talked about when they met the king\nPlayer said"
+        },
+        {
+          "question": "What did Morgan buy?",
+          "ground_truth": "potions",
+          "predicted": "- Potion for 200 gold\n- Shield for 150 gold\n- Sword for 300 gold\n- Shield for 50 gold\n- Shield for 200 gold\n- Bow for 50 gold\n- Shield for 300 gold\n- Armor for 50 gold",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said their name is Morgan\nPlayer bought potion for 200 gold\nPlayer sold leather to the merchant. Player mentioned they are from the mountain fortress. Player completed the treasure map. Player thanked the shopkeeper for the recommendation. Player talked about when they met the king.\nPlayer co"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy fishing?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Delivery quest",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant. Player talked about the great battle.\nPlayer completed the delivery quest\nPlayer mentioned seeing a strange creature\nPlayer mentioned they are from the coastal town"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player thanked the shopkeeper for the information",
+          "predicted": "Completed investigation.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player completed the investigation\nPlayer said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant. Player talked about the great battle.\nPlayer said their name is Jordan\nPlayer talked about their hometown. Player thanked the sho"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player completed the monster hunt",
+          "predicted": "Player asked about weapons prices.",
+          "f1": 0.2,
+          "type": "temporal",
+          "context_preview": "Player talked about when they met the king\nPlayer completed the escort mission\nPlayer mentioned seeing a strange creature\nPlayer expressed concern about the new equipment. Player asked about the bandit problem. Player thanked the shopkeeper for the discount. Player talked about the great battle. Pla"
+        },
+        {
+          "question": "Did 'Player mentioned they are from the northern villag...' happen before or after 'Player expressed curiosity about the village probl...'?",
+          "ground_truth": "before",
+          "predicted": "Before.",
+          "f1": 1.0,
+          "type": "temporal",
+          "context_preview": "Player mentioned they are from the northern village\nPlayer talked about when they met the king\nPlayer mentioned seeing unusual weather. Player said their name is Morgan. Player talked about their hometown. Player expressed curiosity about the village problems. Player said they like collecting rare i"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information about a pet is provided.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing a strange creature\nPlayer mentioned they are from the capital city\nPlayer completed the monster hunt. Player said their name is Alex. Player expressed frustration about the recent battle. Player sold leather to the merchant. Player bought potion for 100 gold.\nPlayer completed"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Player sold herbs to the merchant. Player asked about food prices.\nPlayer said their name is Jordan\nPlayer mentioned they are from the coastal town\nPlayer bought sword for "
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said their name is Sam\nPlayer mentioned seeing a meteor. Player talked about when they met the king. Player bought shield for 300 gold. Player thanked the shopkeeper for the information. Player bought armor for 50 gold.\nPlayer mentioned they are from the northern village\nPlayer mentioned seei"
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "None mentioned.",
+          "f1": 0.5,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer sold leather to the merchant. Player sold iron ore to the merchant. Player sold herbs to the merchant. Player said they like fishing. Player mentioned seeing unusual weather.\nPlayer mentioned they are from the capital city\nPlayer talked about when"
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said their name is Jordan. Player mentioned they are from the forest settlement. Player talked about the great battle. Player bought armor for 300 gold. Player bought armor for 50 gold.\nPlayer asked about potions prices. Player bought shield for 50 gold. Player failed the stealth mission. Pla"
+        },
+        {
+          "question": "Where is the player from?",
+          "ground_truth": "the forest settlement",
+          "predicted": "Northern village, Forest settlement, Capital city, Coastal town.",
+          "f1": 0.3636,
+          "type": "single-hop",
+          "context_preview": "Player mentioned they are from the capital city\nPlayer said their name is Jordan\nPlayer said their name is Alex. Player said their name is Sam. Player bought bow for 150 gold. Player expressed concern about their progress. Player mentioned they are from the northern village.\nPlayer said their name i"
+        },
+        {
+          "question": "How much did the bow cost?",
+          "ground_truth": "100 gold",
+          "predicted": "50, 300, 50, 100, 100, 300, 50, 100, 300",
+          "f1": 0.1818,
+          "type": "single-hop",
+          "context_preview": "Player bought bow for 50 gold\nPlayer mentioned seeing a strange creature. Player mentioned seeing armed soldiers. Player sold iron ore to the merchant. Player bought sword for 50 gold. Player asked about potions prices.\nPlayer mentioned they are from the coastal town. Player expressed excitement abo"
+        },
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Sam",
+          "predicted": "Sam, Alex, Taylor, Jordan, Morgan",
+          "f1": 0.3333,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer completed the monster hunt. Player said their name is Alex. Player expressed frustration about the recent battle. Player sold leather to the merchant. Player bought potion for 100 gold.\nPlayer said their name is Taylor. Player thanked the shopkeeper for the infor"
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "hunting",
+          "predicted": "Hunting, fishing, crafting, collecting rare items.",
+          "f1": 0.2857,
+          "type": "single-hop",
+          "context_preview": "Player mentioned seeing unusual weather. Player said their name is Morgan. Player talked about their hometown. Player expressed curiosity about the village problems. Player said they like collecting rare items.\nPlayer completed the investigation\nPlayer talked about when they met the king\nPlayer said"
+        },
+        {
+          "question": "What did Alex buy?",
+          "ground_truth": "leather",
+          "predicted": "Leather, shield, bow (twice), potion (twice), sword",
+          "f1": 0.25,
+          "type": "multi-hop",
+          "context_preview": "Player completed the monster hunt. Player said their name is Alex. Player expressed frustration about the recent battle. Player sold leather to the merchant. Player bought potion for 100 gold.\nPlayer said their name is Alex\nPlayer bought shield for 50 gold\nPlayer sold leather to the merchant. Player"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy crafting?",
+          "ground_truth": "the haunted mine",
+          "predicted": "Delivery quest",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player completed the monster hunt. Player mentioned seeing unusual weather. Player completed the delivery quest. Player asked about magical items prices. Player sold iron ore to the merchant.\nPlayer sold herbs to the merchant. Player thanked the shopkeeper for the advice. Player bought potion for 30"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player asked about the haunted mine",
+          "predicted": "Completed investigation.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player completed the investigation\nPlayer said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant. Player talked about the great battle.\nPlayer said their name is Jordan\nPlayer talked about their hometown. Player thanked the sho"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player mentioned seeing a strange creature",
+          "predicted": "Player asked about weapons prices.",
+          "f1": 0.1818,
+          "type": "temporal",
+          "context_preview": "Player talked about when they met the king\nPlayer completed the escort mission\nPlayer mentioned seeing a strange creature\nPlayer expressed concern about the new equipment. Player asked about the bandit problem. Player thanked the shopkeeper for the discount. Player talked about the great battle. Pla"
+        },
+        {
+          "question": "Did 'Player sold leather to the merchant...' happen before or after 'Player talked about their hometown...'?",
+          "ground_truth": "before",
+          "predicted": "After.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player sold leather to the merchant. Player mentioned they are from the mountain fortress. Player completed the treasure map. Player thanked the shopkeeper for the recommendation. Player talked about when they met the king.\nPlayer completed the investigation\nPlayer mentioned they are from the capita"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information provided about the player having a pet.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing a strange creature\nPlayer mentioned they are from the capital city\nPlayer completed the monster hunt. Player said their name is Alex. Player expressed frustration about the recent battle. Player sold leather to the merchant. Player bought potion for 100 gold.\nPlayer completed"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Player sold herbs to the merchant. Player asked about food prices.\nPlayer said their name is Jordan\nPlayer mentioned they are from the coastal town\nPlayer bought sword for "
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said their name is Sam\nPlayer mentioned seeing a meteor. Player talked about when they met the king. Player bought shield for 300 gold. Player thanked the shopkeeper for the information. Player bought armor for 50 gold.\nPlayer mentioned they are from the northern village\nPlayer mentioned seei"
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "None mentioned.",
+          "f1": 0.5,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer sold leather to the merchant. Player sold iron ore to the merchant. Player sold herbs to the merchant. Player said they like fishing. Player mentioned seeing unusual weather.\nPlayer mentioned they are from the capital city\nPlayer talked about when"
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said their name is Jordan. Player mentioned they are from the forest settlement. Player talked about the great battle. Player bought armor for 300 gold. Player bought armor for 50 gold.\nPlayer asked about potions prices. Player bought shield for 50 gold. Player failed the stealth mission. Pla"
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "exploring",
+          "predicted": "Hunting, fishing, crafting, collecting rare items.",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player mentioned seeing unusual weather. Player said their name is Morgan. Player talked about their hometown. Player expressed curiosity about the village problems. Player said they like collecting rare items.\nPlayer completed the investigation\nPlayer talked about when they met the king\nPlayer said"
+        },
+        {
+          "question": "How much did the sword cost?",
+          "ground_truth": "150 gold",
+          "predicted": "50, 100, 150, 200, 300",
+          "f1": 0.2857,
+          "type": "single-hop",
+          "context_preview": "Player bought sword for 150 gold\nPlayer thanked the shopkeeper for the discount. Player sold old sword to the merchant. Player thanked the shopkeeper for the help. Player asked about the haunted mine. Player thanked the shopkeeper for the information.\nPlayer mentioned they are from the forest settle"
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "hunting",
+          "predicted": "Hunting, fishing, crafting, collecting rare items.",
+          "f1": 0.2857,
+          "type": "single-hop",
+          "context_preview": "Player mentioned seeing unusual weather. Player said their name is Morgan. Player talked about their hometown. Player expressed curiosity about the village problems. Player said they like collecting rare items.\nPlayer completed the investigation\nPlayer talked about when they met the king\nPlayer said"
+        },
+        {
+          "question": "What did Alex buy?",
+          "ground_truth": "armor",
+          "predicted": "Leather, shield, bow (twice), potion (twice), sword",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player completed the monster hunt. Player said their name is Alex. Player expressed frustration about the recent battle. Player sold leather to the merchant. Player bought potion for 100 gold.\nPlayer said their name is Alex\nPlayer bought shield for 50 gold\nPlayer sold leather to the merchant. Player"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy fishing?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Delivery quest",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant. Player talked about the great battle.\nPlayer completed the delivery quest\nPlayer mentioned seeing a strange creature\nPlayer mentioned they are from the coastal town"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player asked about food prices",
+          "predicted": "Completed the investigation.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player completed the investigation\nPlayer said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant. Player talked about the great battle.\nPlayer said their name is Jordan\nPlayer talked about their hometown. Player thanked the sho"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player mentioned seeing a strange creature",
+          "predicted": "Player asked about weapons prices.",
+          "f1": 0.1818,
+          "type": "temporal",
+          "context_preview": "Player talked about when they met the king\nPlayer completed the escort mission\nPlayer mentioned seeing a strange creature\nPlayer expressed concern about the new equipment. Player asked about the bandit problem. Player thanked the shopkeeper for the discount. Player talked about the great battle. Pla"
+        },
+        {
+          "question": "Did 'Player said they like fishing...' happen before or after 'Player talked about when they met the king...'?",
+          "ground_truth": "before",
+          "predicted": "After.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player talked about when they met the king\nPlayer said they like fishing. Player thanked the shopkeeper for the advice. Player asked about magical items prices. Player bought potion for 100 gold. Player mentioned seeing a strange creature.\nPlayer mentioned they are from the coastal town\nPlayer menti"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information provided about the player having a pet.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing a strange creature\nPlayer mentioned they are from the capital city\nPlayer completed the monster hunt. Player said their name is Alex. Player expressed frustration about the recent battle. Player sold leather to the merchant. Player bought potion for 100 gold.\nPlayer completed"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Player sold herbs to the merchant. Player asked about food prices.\nPlayer said their name is Jordan\nPlayer mentioned they are from the coastal town\nPlayer bought sword for "
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said their name is Sam\nPlayer mentioned seeing a meteor. Player talked about when they met the king. Player bought shield for 300 gold. Player thanked the shopkeeper for the information. Player bought armor for 50 gold.\nPlayer mentioned they are from the northern village\nPlayer mentioned seei"
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "No profession mentioned.",
+          "f1": 0.4,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer sold leather to the merchant. Player sold iron ore to the merchant. Player sold herbs to the merchant. Player said they like fishing. Player mentioned seeing unusual weather.\nPlayer mentioned they are from the capital city\nPlayer talked about when"
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said their name is Jordan. Player mentioned they are from the forest settlement. Player talked about the great battle. Player bought armor for 300 gold. Player bought armor for 50 gold.\nPlayer asked about potions prices. Player bought shield for 50 gold. Player failed the stealth mission. Pla"
+        }
+      ]
+    },
+    {
+      "strategy": "Consolidation-Aware (Ours)",
+      "f1_scores": {
+        "single-hop": 0.35151515151515156,
+        "multi-hop": 0.0,
+        "temporal": 0.25703703703703706,
+        "adversarial": 0.036000000000000004
+      },
+      "overall_f1": 0.21485072951739623,
+      "memory_count": 76,
+      "memory_bytes_mb": 0.131936,
+      "avg_latency_ms": 5.6561250000413565,
+      "consolidation_ratio": 0.9473684210526315,
+      "qa_details": [
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Jordan",
+          "predicted": "Jordan",
+          "f1": 1.0,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer completed the investigation\nPlayer expressed excitement about the village problems. Player failed to defeat the boss. Player bought sword for 300 gold. Player talked about their hometown. Player said their name is Taylor.\nPlayer talked about their hometown\nPlayer"
+        },
+        {
+          "question": "How much did the shield cost?",
+          "ground_truth": "150 gold",
+          "predicted": "50, 150, 300",
+          "f1": 0.4,
+          "type": "single-hop",
+          "context_preview": "Player bought shield for 50 gold. Player asked about armor prices. Player failed the time trial. Player failed the time trial. Player thanked the shopkeeper for the advice.\nPlayer talked about the great battle\nPlayer asked about food prices\nPlayer completed the delivery quest. Player mentioned they "
+        },
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Morgan",
+          "predicted": "Jordan",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer completed the investigation\nPlayer expressed excitement about the village problems. Player failed to defeat the boss. Player bought sword for 300 gold. Player talked about their hometown. Player said their name is Taylor.\nPlayer talked about their hometown\nPlayer"
+        },
+        {
+          "question": "How much did the armor cost?",
+          "ground_truth": "300 gold",
+          "predicted": "300, 50, 150",
+          "f1": 0.4,
+          "type": "single-hop",
+          "context_preview": "Player asked about armor prices\nPlayer bought potion for 150 gold\nPlayer said they like collecting rare items\nPlayer said their name is Jordan. Player mentioned they are from the forest settlement. Player talked about the great battle. Player bought armor for 300 gold. Player bought armor for 50 gol"
+        },
+        {
+          "question": "Where is the player from?",
+          "ground_truth": "the capital city",
+          "predicted": "- Coastal town\n- Capital city\n- Northern village\n- Forest settlement",
+          "f1": 0.3636,
+          "type": "single-hop",
+          "context_preview": "Player mentioned they are from the coastal town\nPlayer completed the investigation\nPlayer said their name is Jordan\nPlayer talked about their hometown\nPlayer said their name is Alex. Player thanked the shopkeeper for the help. Player mentioned they are from the capital city. Player thanked the shopk"
+        },
+        {
+          "question": "What did Jordan buy?",
+          "ground_truth": "potion",
+          "predicted": "- Sword for 150 gold\n- Bow for 50 gold\n- Armor for 300 gold\n- Armor for 50 gold\n- Armor for 100 gold\n- Shield for 200 gold",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said their name is Jordan\nPlayer bought sword for 150 gold. Player bought bow for 50 gold. Player asked about magical items prices. Player sold rare gem to the merchant. Player failed to defeat the boss.\nPlayer asked about food prices\nPlayer talked about when they met the king\nPlayer said the"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy hunting?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Monster hunt",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like hunting\nPlayer completed the delivery quest\nPlayer asked about the dragon sighting\nPlayer sold herbs to the merchant. Player failed the time trial. Player thanked the shopkeeper for the advice. Player expressed joy about the village problems. Player completed the monster hunt.\n"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player mentioned seeing unusual weather",
+          "predicted": "Completed the investigation.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player completed the investigation\nPlayer thanked the shopkeeper for the help. Player sold leather to the merchant. Player sold iron ore to the merchant. Player sold herbs to the merchant. Player said they like fishing.\nPlayer talked about their training days\nPlayer talked about their first adventur"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player bought armor for 300 gold",
+          "predicted": "Player completed the investigation.",
+          "f1": 0.2,
+          "type": "temporal",
+          "context_preview": "Player expressed excitement about the recent battle\nPlayer asked about the dragon sighting\nPlayer completed the investigation\nPlayer talked about when they met the king\nPlayer mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Pla"
+        },
+        {
+          "question": "Did 'Player thanked the shopkeeper for the advice...' happen before or after 'Player talked about the great battle...'?",
+          "ground_truth": "before",
+          "predicted": "After.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player thanked the shopkeeper for the information. Player expressed concern about the new equipment. Player asked about the bandit problem. Player thanked the shopkeeper for the discount. Player talked about the great battle.\nPlayer talked about when they met the king\nPlayer expressed frustration ab"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information provided about the player having a pet.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing a strange creature\nPlayer said their name is Sam\nPlayer thanked the shopkeeper for the information. Player said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant.\nPlayer completed the investigation\nPlaye"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "No answer available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about food prices\nPlayer mentioned they are from the coastal town\nPlayer expressed joy about their progress\nPlayer said they like collecting rare items\nPlayer said they like fishing. Player completed the delivery quest. Player talked about their hometown. Player mentioned seeing a stran"
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said they like fishing. Player said their name is Alex. Player said their name is Sam. Player bought bow for 150 gold. Player expressed concern about their progress.\nPlayer completed the investigation\nPlayer asked about food prices\nPlayer mentioned they are from the northern village\nPlayer sa"
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "Crafting",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer mentioned they are from the forest settlement. Player failed"
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about armor prices\nPlayer mentioned they are from the northern village\nPlayer mentioned seeing unusual weather\nPlayer said they like hunting\nPlayer sold iron ore to the merchant\nPlayer said their name is Jordan\nPlayer asked about the dragon sighting. Player sold leather to the merchant."
+        },
+        {
+          "question": "Where is the player from?",
+          "ground_truth": "the mountain fortress",
+          "predicted": "Coastal town, Capital city, Northern village, Forest settlement.",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player mentioned they are from the coastal town\nPlayer completed the investigation\nPlayer said their name is Jordan\nPlayer talked about their hometown\nPlayer said their name is Alex. Player thanked the shopkeeper for the help. Player mentioned they are from the capital city. Player thanked the shopk"
+        },
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Alex",
+          "predicted": "Jordan",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer completed the investigation\nPlayer expressed excitement about the village problems. Player failed to defeat the boss. Player bought sword for 300 gold. Player talked about their hometown. Player said their name is Taylor.\nPlayer talked about their hometown\nPlayer"
+        },
+        {
+          "question": "How much did the bow cost?",
+          "ground_truth": "100 gold",
+          "predicted": "50, 100, 200, 300",
+          "f1": 0.3333,
+          "type": "single-hop",
+          "context_preview": "Player asked about weapons prices. Player sold old sword to the merchant. Player said their name is Sam. Player sold leather to the merchant. Player bought bow for 100 gold.\nPlayer completed the monster hunt\nPlayer asked about potions prices\nPlayer asked about the bandit problem\nPlayer completed the"
+        },
+        {
+          "question": "What did Sam buy?",
+          "ground_truth": "herbs",
+          "predicted": "Sword, leather, bow (2 times), potion (2 times)",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player asked about weapons prices. Player sold old sword to the merchant. Player said their name is Sam. Player sold leather to the merchant. Player bought bow for 100 gold.\nPlayer talked about when they met the king\nPlayer said their name is Sam\nPlayer said they like collecting rare items\nPlayer th"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy fishing?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Delivery quest",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like fishing. Player completed the delivery quest. Player talked about their hometown. Player mentioned seeing a strange creature. Player completed the escort mission.\nPlayer asked about food prices\nPlayer mentioned they are from the coastal town\nPlayer said they like collecting rar"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player bought armor for 50 gold",
+          "predicted": "Completed the investigation.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player completed the investigation\nPlayer thanked the shopkeeper for the help. Player sold leather to the merchant. Player sold iron ore to the merchant. Player sold herbs to the merchant. Player said they like fishing.\nPlayer talked about their training days\nPlayer talked about their first adventur"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player asked about magical items prices",
+          "predicted": "Player completed the investigation.",
+          "f1": 0.2,
+          "type": "temporal",
+          "context_preview": "Player expressed excitement about the recent battle\nPlayer asked about the dragon sighting\nPlayer completed the investigation\nPlayer talked about when they met the king\nPlayer mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Pla"
+        },
+        {
+          "question": "Did 'Player thanked the shopkeeper for the advice...' happen before or after 'Player thanked the shopkeeper for the information...'?",
+          "ground_truth": "before",
+          "predicted": "After.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player thanked the shopkeeper for the help\nPlayer said their name is Sam\nPlayer completed the investigation\nPlayer asked about food prices\nPlayer completed the delivery quest\nPlayer mentioned seeing armed soldiers. Player asked about armor prices. Player thanked the shopkeeper for the advice. Player"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing a strange creature\nPlayer said their name is Sam\nPlayer thanked the shopkeeper for the information. Player said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant.\nPlayer completed the investigation\nPlaye"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about food prices\nPlayer mentioned they are from the coastal town\nPlayer expressed joy about their progress\nPlayer said they like collecting rare items\nPlayer said they like fishing. Player completed the delivery quest. Player talked about their hometown. Player mentioned seeing a stran"
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said they like fishing. Player said their name is Alex. Player said their name is Sam. Player bought bow for 150 gold. Player expressed concern about their progress.\nPlayer completed the investigation\nPlayer asked about food prices\nPlayer mentioned they are from the northern village\nPlayer sa"
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "Crafting",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer mentioned they are from the forest settlement. Player failed"
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about armor prices\nPlayer mentioned they are from the northern village\nPlayer mentioned seeing unusual weather\nPlayer said they like hunting\nPlayer sold iron ore to the merchant\nPlayer said their name is Jordan\nPlayer asked about the dragon sighting. Player sold leather to the merchant."
+        },
+        {
+          "question": "How much did the potion cost?",
+          "ground_truth": "150 gold",
+          "predicted": "100, 150, 150, 100",
+          "f1": 0.3333,
+          "type": "single-hop",
+          "context_preview": "Player asked about potions prices\nPlayer completed the delivery quest\nPlayer sold iron ore to the merchant\nPlayer thanked the shopkeeper for the information. Player mentioned they are from the northern village. Player bought shield for 300 gold. Player said their name is Morgan. Player bought potion"
+        },
+        {
+          "question": "How much did the armor cost?",
+          "ground_truth": "150 gold",
+          "predicted": "300, 50, 150",
+          "f1": 0.4,
+          "type": "single-hop",
+          "context_preview": "Player asked about armor prices\nPlayer bought potion for 150 gold\nPlayer said they like collecting rare items\nPlayer said their name is Jordan. Player mentioned they are from the forest settlement. Player talked about the great battle. Player bought armor for 300 gold. Player bought armor for 50 gol"
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "fishing",
+          "predicted": "Fishing, hunting.",
+          "f1": 0.6667,
+          "type": "single-hop",
+          "context_preview": "Player expressed joy about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer talked about when they met the king\nPlayer talked about their tr"
+        },
+        {
+          "question": "What did Morgan buy?",
+          "ground_truth": "potions",
+          "predicted": "Shield for 150 gold, potion for 150 gold, sword for 300 gold, shield for 300 gold, shield for 200 gold.",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said their name is Morgan\nPlayer asked about magical items prices\nPlayer asked about the dragon sighting. Player sold leather to the merchant. Player mentioned they are from the mountain fortress. Player completed the treasure map. Player thanked the shopkeeper for the recommendation.\nPlayer "
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy fishing?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Delivery quest",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like fishing. Player completed the delivery quest. Player talked about their hometown. Player mentioned seeing a strange creature. Player completed the escort mission.\nPlayer asked about food prices\nPlayer mentioned they are from the coastal town\nPlayer said they like collecting rar"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player thanked the shopkeeper for the information",
+          "predicted": "Completed the investigation.",
+          "f1": 0.2,
+          "type": "temporal",
+          "context_preview": "Player completed the investigation\nPlayer thanked the shopkeeper for the help. Player sold leather to the merchant. Player sold iron ore to the merchant. Player sold herbs to the merchant. Player said they like fishing.\nPlayer talked about their training days\nPlayer talked about their first adventur"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player completed the monster hunt",
+          "predicted": "Player completed the investigation.",
+          "f1": 0.6667,
+          "type": "temporal",
+          "context_preview": "Player expressed excitement about the recent battle\nPlayer asked about the dragon sighting\nPlayer completed the investigation\nPlayer talked about when they met the king\nPlayer mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Pla"
+        },
+        {
+          "question": "Did 'Player mentioned they are from the northern villag...' happen before or after 'Player expressed curiosity about the village probl...'?",
+          "ground_truth": "before",
+          "predicted": "Before",
+          "f1": 1.0,
+          "type": "temporal",
+          "context_preview": "Player mentioned they are from the northern village\nPlayer asked about the dragon sighting\nPlayer talked about when they met the king\nPlayer mentioned seeing suspicious travelers\nPlayer expressed excitement about the village problems. Player failed to defeat the boss. Player bought sword for 300 gol"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information about a pet is provided.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing a strange creature\nPlayer said their name is Sam\nPlayer thanked the shopkeeper for the information. Player said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant.\nPlayer completed the investigation\nPlaye"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about food prices\nPlayer mentioned they are from the coastal town\nPlayer expressed joy about their progress\nPlayer said they like collecting rare items\nPlayer said they like fishing. Player completed the delivery quest. Player talked about their hometown. Player mentioned seeing a stran"
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said they like fishing. Player said their name is Alex. Player said their name is Sam. Player bought bow for 150 gold. Player expressed concern about their progress.\nPlayer completed the investigation\nPlayer asked about food prices\nPlayer mentioned they are from the northern village\nPlayer sa"
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "None mentioned.",
+          "f1": 0.5,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer mentioned they are from the forest settlement. Player failed"
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about armor prices\nPlayer mentioned they are from the northern village\nPlayer mentioned seeing unusual weather\nPlayer said they like hunting\nPlayer sold iron ore to the merchant\nPlayer said their name is Jordan\nPlayer asked about the dragon sighting. Player sold leather to the merchant."
+        },
+        {
+          "question": "Where is the player from?",
+          "ground_truth": "the forest settlement",
+          "predicted": "Coastal town, Capital city, Northern village, Forest settlement.",
+          "f1": 0.3636,
+          "type": "single-hop",
+          "context_preview": "Player mentioned they are from the coastal town\nPlayer completed the investigation\nPlayer said their name is Jordan\nPlayer talked about their hometown\nPlayer said their name is Alex. Player thanked the shopkeeper for the help. Player mentioned they are from the capital city. Player thanked the shopk"
+        },
+        {
+          "question": "How much did the bow cost?",
+          "ground_truth": "100 gold",
+          "predicted": "50, 100, 200, 300",
+          "f1": 0.3333,
+          "type": "single-hop",
+          "context_preview": "Player asked about weapons prices. Player sold old sword to the merchant. Player said their name is Sam. Player sold leather to the merchant. Player bought bow for 100 gold.\nPlayer completed the monster hunt\nPlayer asked about potions prices\nPlayer asked about the bandit problem\nPlayer completed the"
+        },
+        {
+          "question": "What is the player's name?",
+          "ground_truth": "Sam",
+          "predicted": "Jordan",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player said their name is Sam\nPlayer completed the investigation\nPlayer expressed excitement about the village problems. Player failed to defeat the boss. Player bought sword for 300 gold. Player talked about their hometown. Player said their name is Taylor.\nPlayer talked about their hometown\nPlayer"
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "hunting",
+          "predicted": "Fishing, hunting.",
+          "f1": 0.6667,
+          "type": "single-hop",
+          "context_preview": "Player expressed joy about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer talked about when they met the king\nPlayer talked about their tr"
+        },
+        {
+          "question": "What did Alex buy?",
+          "ground_truth": "leather",
+          "predicted": "Potion for 100 gold, potion for 150 gold, bow for 150 gold.",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player completed the monster hunt. Player said their name is Alex. Player expressed frustration about the recent battle. Player sold leather to the merchant. Player bought potion for 100 gold.\nPlayer asked about food prices\nPlayer said their name is Jordan\nPlayer said their name is Alex. Player than"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy crafting?",
+          "ground_truth": "the haunted mine",
+          "predicted": "Delivery quest.",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player completed the monster hunt. Player mentioned seeing unusual weather. Player completed the delivery quest. Player asked about magical items prices. Player sold iron ore to the merchant.\nPlayer said they like fishing\nPlayer thanked the shopkeeper for the help. Player mentioned seeing suspicious"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player asked about the haunted mine",
+          "predicted": "Completed the investigation.",
+          "f1": 0.2222,
+          "type": "temporal",
+          "context_preview": "Player completed the investigation\nPlayer thanked the shopkeeper for the help. Player sold leather to the merchant. Player sold iron ore to the merchant. Player sold herbs to the merchant. Player said they like fishing.\nPlayer talked about their training days\nPlayer talked about their first adventur"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player mentioned seeing a strange creature",
+          "predicted": "Player completed the investigation.",
+          "f1": 0.2,
+          "type": "temporal",
+          "context_preview": "Player expressed excitement about the recent battle\nPlayer asked about the dragon sighting\nPlayer completed the investigation\nPlayer talked about when they met the king\nPlayer mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Pla"
+        },
+        {
+          "question": "Did 'Player sold leather to the merchant...' happen before or after 'Player talked about their hometown...'?",
+          "ground_truth": "before",
+          "predicted": "Before.",
+          "f1": 1.0,
+          "type": "temporal",
+          "context_preview": "Player sold leather to the merchant. Player bought shield for 200 gold. Player completed the delivery quest. Player asked about the haunted mine. Player expressed joy about their progress.\nPlayer talked about their hometown\nPlayer completed the investigation\nPlayer thanked the shopkeeper for the dis"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information about a pet.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing a strange creature\nPlayer said their name is Sam\nPlayer thanked the shopkeeper for the information. Player said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant.\nPlayer completed the investigation\nPlaye"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "No answer available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about food prices\nPlayer mentioned they are from the coastal town\nPlayer expressed joy about their progress\nPlayer said they like collecting rare items\nPlayer said they like fishing. Player completed the delivery quest. Player talked about their hometown. Player mentioned seeing a stran"
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said they like fishing. Player said their name is Alex. Player said their name is Sam. Player bought bow for 150 gold. Player expressed concern about their progress.\nPlayer completed the investigation\nPlayer asked about food prices\nPlayer mentioned they are from the northern village\nPlayer sa"
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "Crafting",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer mentioned they are from the forest settlement. Player failed"
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about armor prices\nPlayer mentioned they are from the northern village\nPlayer mentioned seeing unusual weather\nPlayer said they like hunting\nPlayer sold iron ore to the merchant\nPlayer said their name is Jordan\nPlayer asked about the dragon sighting. Player sold leather to the merchant."
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "exploring",
+          "predicted": "Fishing, hunting.",
+          "f1": 0.0,
+          "type": "single-hop",
+          "context_preview": "Player expressed joy about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer talked about when they met the king\nPlayer talked about their tr"
+        },
+        {
+          "question": "How much did the sword cost?",
+          "ground_truth": "150 gold",
+          "predicted": "150, 200, 300",
+          "f1": 0.4,
+          "type": "single-hop",
+          "context_preview": "Player bought sword for 150 gold. Player bought bow for 50 gold. Player asked about magical items prices. Player sold rare gem to the merchant. Player failed to defeat the boss.\nPlayer talked about the great battle\nPlayer asked about food prices\nPlayer mentioned they are from the forest settlement. "
+        },
+        {
+          "question": "What hobbies did the player mention?",
+          "ground_truth": "hunting",
+          "predicted": "Fishing, hunting.",
+          "f1": 0.6667,
+          "type": "single-hop",
+          "context_preview": "Player expressed joy about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer talked about when they met the king\nPlayer talked about their tr"
+        },
+        {
+          "question": "What did Alex buy?",
+          "ground_truth": "armor",
+          "predicted": "Potion for 100 gold, potion for 150 gold, bow for 150 gold.",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player completed the monster hunt. Player said their name is Alex. Player expressed frustration about the recent battle. Player sold leather to the merchant. Player bought potion for 100 gold.\nPlayer asked about food prices\nPlayer said their name is Jordan\nPlayer said their name is Alex. Player than"
+        },
+        {
+          "question": "What quest was the player interested in, given that they enjoy fishing?",
+          "ground_truth": "the missing merchant",
+          "predicted": "Delivery quest",
+          "f1": 0.0,
+          "type": "multi-hop",
+          "context_preview": "Player said they like fishing. Player completed the delivery quest. Player talked about their hometown. Player mentioned seeing a strange creature. Player completed the escort mission.\nPlayer asked about food prices\nPlayer mentioned they are from the coastal town\nPlayer said they like collecting rar"
+        },
+        {
+          "question": "What was the first thing the player did?",
+          "ground_truth": "Player asked about food prices",
+          "predicted": "Completed the investigation.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player completed the investigation\nPlayer thanked the shopkeeper for the help. Player sold leather to the merchant. Player sold iron ore to the merchant. Player sold herbs to the merchant. Player said they like fishing.\nPlayer talked about their training days\nPlayer talked about their first adventur"
+        },
+        {
+          "question": "What was the most recent interaction?",
+          "ground_truth": "Player mentioned seeing a strange creature",
+          "predicted": "Player asked about the haunted mine.",
+          "f1": 0.1667,
+          "type": "temporal",
+          "context_preview": "Player expressed excitement about the recent battle\nPlayer asked about the dragon sighting\nPlayer completed the investigation\nPlayer talked about when they met the king\nPlayer mentioned seeing unusual weather. Player thanked the shopkeeper for the advice. Player asked about the missing merchant. Pla"
+        },
+        {
+          "question": "Did 'Player said they like fishing...' happen before or after 'Player talked about when they met the king...'?",
+          "ground_truth": "before",
+          "predicted": "After.",
+          "f1": 0.0,
+          "type": "temporal",
+          "context_preview": "Player talked about when they met the king\nPlayer said they like fishing\nPlayer asked about the dragon sighting\nPlayer mentioned they are from the forest settlement. Player mentioned seeing unusual weather. Player said their name is Morgan. Player talked about their hometown. Player expressed curios"
+        },
+        {
+          "question": "What pet does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player mentioned seeing a strange creature\nPlayer said their name is Sam\nPlayer thanked the shopkeeper for the information. Player said they like fishing. Player bought shield for 200 gold. Player sold herbs to the merchant. Player sold herbs to the merchant.\nPlayer completed the investigation\nPlaye"
+        },
+        {
+          "question": "What is the player's favorite food?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about food prices\nPlayer mentioned they are from the coastal town\nPlayer expressed joy about their progress\nPlayer said they like collecting rare items\nPlayer said they like fishing. Player completed the delivery quest. Player talked about their hometown. Player mentioned seeing a stran"
+        },
+        {
+          "question": "How many children does the player have?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player said they like fishing. Player said their name is Alex. Player said their name is Sam. Player bought bow for 150 gold. Player expressed concern about their progress.\nPlayer completed the investigation\nPlayer asked about food prices\nPlayer mentioned they are from the northern village\nPlayer sa"
+        },
+        {
+          "question": "What is the player's profession?",
+          "ground_truth": "not mentioned",
+          "predicted": "No profession mentioned.",
+          "f1": 0.4,
+          "type": "adversarial",
+          "context_preview": "Player expressed concern about their progress\nPlayer asked about food prices. Player said they like fishing. Player sold leather to the merchant. Player mentioned they are from the northern village. Player bought armor for 150 gold.\nPlayer mentioned they are from the forest settlement. Player failed"
+        },
+        {
+          "question": "What color is the player's armor?",
+          "ground_truth": "not mentioned",
+          "predicted": "No information available.",
+          "f1": 0.0,
+          "type": "adversarial",
+          "context_preview": "Player asked about armor prices\nPlayer mentioned they are from the northern village\nPlayer mentioned seeing unusual weather\nPlayer said they like hunting\nPlayer sold iron ore to the merchant\nPlayer said their name is Jordan\nPlayer asked about the dragon sighting. Player sold leather to the merchant."
+        }
+      ]
+    }
+  ],
+  "api_usage": {
+    "provider": "groq",
+    "model": "llama-3.1-8b-instant",
+    "total_requests": 272,
+    "total_tokens_in": 87024,
+    "total_tokens_out": 2485,
+    "total_tokens": 89509,
+    "avg_latency_ms": 305.8101105339387,
+    "num_api_keys": 2
+  }
+}
