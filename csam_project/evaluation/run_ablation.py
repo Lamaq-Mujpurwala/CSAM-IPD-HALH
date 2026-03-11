@@ -502,7 +502,7 @@ def run_ablation_study(
         ("LRU", LRUForgetting()),
         ("Importance", ImportanceForgetting()),
         ("Consolidation-Aware (Ours)", ConsolidationAwareForgetting(
-            alpha=0.2, beta=0.2, gamma=0.3, delta=0.3,
+            alpha=0.25, beta=0.25, gamma=0.25, delta=0.25,
             consolidation_threshold=0.3
         )),
     ]

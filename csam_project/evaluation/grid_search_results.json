@@ -1,0 +1,390 @@
+{
+  "timestamp": "2026-03-11T10:46:09.519757",
+  "config": {
+    "num_conversations": 5,
+    "interactions_per_conversation": 100,
+    "forget_threshold": 80,
+    "consolidation_threshold": 0.3,
+    "llm_model": "llama-3.1-8b-instant",
+    "num_combos": 20
+  },
+  "best_weights": {
+    "alpha": 0.25,
+    "beta": 0.25,
+    "gamma": 0.25,
+    "delta": 0.25
+  },
+  "best_f1": 0.1852,
+  "results": [
+    {
+      "weights": {
+        "alpha": 0.25,
+        "beta": 0.25,
+        "gamma": 0.25,
+        "delta": 0.25
+      },
+      "overall_f1": 0.1852,
+      "f1_scores": {
+        "single-hop": 0.3462,
+        "multi-hop": 0.0,
+        "temporal": 0.1895,
+        "adversarial": 0.02
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 20.67
+    },
+    {
+      "weights": {
+        "alpha": 0.1,
+        "beta": 0.1,
+        "gamma": 0.6,
+        "delta": 0.2
+      },
+      "overall_f1": 0.178,
+      "f1_scores": {
+        "single-hop": 0.3406,
+        "multi-hop": 0.0143,
+        "temporal": 0.2593,
+        "adversarial": 0.0978
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 20.38
+    },
+    {
+      "weights": {
+        "alpha": 0.3,
+        "beta": 0.1,
+        "gamma": 0.2,
+        "delta": 0.4
+      },
+      "overall_f1": 0.1743,
+      "f1_scores": {
+        "single-hop": 0.37,
+        "multi-hop": 0.008,
+        "temporal": 0.2593,
+        "adversarial": 0.06
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 24.46
+    },
+    {
+      "weights": {
+        "alpha": 0.05,
+        "beta": 0.15,
+        "gamma": 0.4,
+        "delta": 0.4
+      },
+      "overall_f1": 0.1732,
+      "f1_scores": {
+        "single-hop": 0.3655,
+        "multi-hop": 0.008,
+        "temporal": 0.2593,
+        "adversarial": 0.06
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 20.4
+    },
+    {
+      "weights": {
+        "alpha": 0.1,
+        "beta": 0.1,
+        "gamma": 0.2,
+        "delta": 0.6
+      },
+      "overall_f1": 0.1675,
+      "f1_scores": {
+        "single-hop": 0.3711,
+        "multi-hop": 0.008,
+        "temporal": 0.235,
+        "adversarial": 0.056
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 20.63
+    },
+    {
+      "weights": {
+        "alpha": 0.1,
+        "beta": 0.4,
+        "gamma": 0.25,
+        "delta": 0.25
+      },
+      "overall_f1": 0.1646,
+      "f1_scores": {
+        "single-hop": 0.3461,
+        "multi-hop": 0.0222,
+        "temporal": 0.2611,
+        "adversarial": 0.0289
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 20.39
+    },
+    {
+      "weights": {
+        "alpha": 0.1,
+        "beta": 0.5,
+        "gamma": 0.2,
+        "delta": 0.2
+      },
+      "overall_f1": 0.1583,
+      "f1_scores": {
+        "single-hop": 0.3489,
+        "multi-hop": 0.0182,
+        "temporal": 0.1902,
+        "adversarial": 0.076
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 23.95
+    },
+    {
+      "weights": {
+        "alpha": 0.2,
+        "beta": 0.1,
+        "gamma": 0.4,
+        "delta": 0.3
+      },
+      "overall_f1": 0.1568,
+      "f1_scores": {
+        "single-hop": 0.3536,
+        "multi-hop": 0.008,
+        "temporal": 0.1895,
+        "adversarial": 0.076
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 20.56
+    },
+    {
+      "weights": {
+        "alpha": 0.2,
+        "beta": 0.2,
+        "gamma": 0.3,
+        "delta": 0.3
+      },
+      "overall_f1": 0.1562,
+      "f1_scores": {
+        "single-hop": 0.3529,
+        "multi-hop": 0.0111,
+        "temporal": 0.2126,
+        "adversarial": 0.048
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 24.2
+    },
+    {
+      "weights": {
+        "alpha": 0.05,
+        "beta": 0.05,
+        "gamma": 0.5,
+        "delta": 0.4
+      },
+      "overall_f1": 0.1536,
+      "f1_scores": {
+        "single-hop": 0.36,
+        "multi-hop": 0.008,
+        "temporal": 0.1904,
+        "adversarial": 0.056
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 20.66
+    },
+    {
+      "weights": {
+        "alpha": 0.5,
+        "beta": 0.1,
+        "gamma": 0.2,
+        "delta": 0.2
+      },
+      "overall_f1": 0.1497,
+      "f1_scores": {
+        "single-hop": 0.3453,
+        "multi-hop": 0.008,
+        "temporal": 0.1895,
+        "adversarial": 0.056
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 24.02
+    },
+    {
+      "weights": {
+        "alpha": 0.15,
+        "beta": 0.15,
+        "gamma": 0.35,
+        "delta": 0.35
+      },
+      "overall_f1": 0.1496,
+      "f1_scores": {
+        "single-hop": 0.3519,
+        "multi-hop": 0.0111,
+        "temporal": 0.1796,
+        "adversarial": 0.056
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 20.19
+    },
+    {
+      "weights": {
+        "alpha": 0.05,
+        "beta": 0.05,
+        "gamma": 0.45,
+        "delta": 0.45
+      },
+      "overall_f1": 0.1488,
+      "f1_scores": {
+        "single-hop": 0.36,
+        "multi-hop": 0.008,
+        "temporal": 0.1873,
+        "adversarial": 0.04
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 20.27
+    },
+    {
+      "weights": {
+        "alpha": 0.15,
+        "beta": 0.05,
+        "gamma": 0.4,
+        "delta": 0.4
+      },
+      "overall_f1": 0.1485,
+      "f1_scores": {
+        "single-hop": 0.3626,
+        "multi-hop": 0.008,
+        "temporal": 0.1873,
+        "adversarial": 0.036
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 20.35
+    },
+    {
+      "weights": {
+        "alpha": 0.3,
+        "beta": 0.3,
+        "gamma": 0.2,
+        "delta": 0.2
+      },
+      "overall_f1": 0.1463,
+      "f1_scores": {
+        "single-hop": 0.3489,
+        "multi-hop": 0.0182,
+        "temporal": 0.1893,
+        "adversarial": 0.0289
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 23.93
+    },
+    {
+      "weights": {
+        "alpha": 0.1,
+        "beta": 0.1,
+        "gamma": 0.5,
+        "delta": 0.3
+      },
+      "overall_f1": 0.144,
+      "f1_scores": {
+        "single-hop": 0.3266,
+        "multi-hop": 0.008,
+        "temporal": 0.1926,
+        "adversarial": 0.0489
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 20.37
+    },
+    {
+      "weights": {
+        "alpha": 0.1,
+        "beta": 0.1,
+        "gamma": 0.4,
+        "delta": 0.4
+      },
+      "overall_f1": 0.1425,
+      "f1_scores": {
+        "single-hop": 0.3626,
+        "multi-hop": 0.008,
+        "temporal": 0.1904,
+        "adversarial": 0.0089
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 20.14
+    },
+    {
+      "weights": {
+        "alpha": 0.1,
+        "beta": 0.3,
+        "gamma": 0.4,
+        "delta": 0.2
+      },
+      "overall_f1": 0.1411,
+      "f1_scores": {
+        "single-hop": 0.3314,
+        "multi-hop": 0.0182,
+        "temporal": 0.1259,
+        "adversarial": 0.0889
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 20.33
+    },
+    {
+      "weights": {
+        "alpha": 0.1,
+        "beta": 0.1,
+        "gamma": 0.3,
+        "delta": 0.5
+      },
+      "overall_f1": 0.1374,
+      "f1_scores": {
+        "single-hop": 0.3445,
+        "multi-hop": 0.008,
+        "temporal": 0.1683,
+        "adversarial": 0.0289
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 20.15
+    },
+    {
+      "weights": {
+        "alpha": 0.4,
+        "beta": 0.1,
+        "gamma": 0.25,
+        "delta": 0.25
+      },
+      "overall_f1": 0.1334,
+      "f1_scores": {
+        "single-hop": 0.3437,
+        "multi-hop": 0.008,
+        "temporal": 0.1259,
+        "adversarial": 0.056
+      },
+      "memory_count": 76,
+      "consolidation_ratio": 0.9474,
+      "avg_latency_ms": 24.53
+    }
+  ],
+  "api_usage": {
+    "provider": "groq",
+    "model": "llama-3.1-8b-instant",
+    "total_requests": 1360,
+    "total_tokens_in": 382498,
+    "total_tokens_out": 10292,
+    "total_tokens": 392790,
+    "avg_latency_ms": 169.67297529473024,
+    "num_api_keys": 2
+  }
+}

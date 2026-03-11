@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 # ────────────────────────────────────────────────────────────
 WEIGHT_GRID: List[Tuple[float, float, float, float]] = [
     # --- Baseline ---
-    (0.20, 0.20, 0.30, 0.30),  # current default
+    (0.25, 0.25, 0.25, 0.25),  # current default (grid-search-optimal)
 
     # --- Equal ---
     (0.25, 0.25, 0.25, 0.25),
