@@ -91,7 +91,8 @@ class MemorySystemWithForgetting:
         forgetting_strategy: ForgettingStrategy,
         max_memories: int = 10000,
         forget_threshold: int = 1000,
-        embedding_service: EmbeddingService = None
+        embedding_service: EmbeddingService = None,
+        random_seed: int = 42
     ):
         """
         Initialize memory system.
@@ -111,7 +112,8 @@ class MemorySystemWithForgetting:
         # Initialize components
         self.memory_repo = MemoryRepository(
             embedding_dim=self.embedding_service.dimension,
-            max_memories=max_memories
+            max_memories=max_memories,
+            random_seed=random_seed
         )
         self.knowledge_graph = KnowledgeGraph(
             db_path=":memory:",
@@ -320,6 +322,7 @@ def answer_question_with_llm(
     llm_service: HostedLLMService,
     context: str,
     question: str,
+    seed: Optional[int] = None,
 ) -> str:
     """
     Use a real LLM to answer a question given retrieved context.
@@ -330,7 +333,8 @@ def answer_question_with_llm(
         context=context,
         user_message=question,
         persona=None,
-        mode="qa"
+        mode="qa",
+        seed=seed
     )
 
 
@@ -342,7 +346,9 @@ def evaluate_strategy(
     max_memories: int = 10000,
     forget_threshold: int = 80,
     llm_service: Optional[HostedLLMService] = None,
-    verbose: bool = True
+    verbose: bool = True,
+    random_seed: int = 42,
+    llm_seed: Optional[int] = None
 ) -> EvaluationResult:
     """
     Evaluate a single forgetting strategy.
@@ -369,7 +375,8 @@ def evaluate_strategy(
         forgetting_strategy=forgetting_strategy,
         max_memories=max_memories,
         forget_threshold=forget_threshold,
-        embedding_service=embedding_service
+        embedding_service=embedding_service,
+        random_seed=random_seed
     )
     
     # Load all interactions from dataset
@@ -415,7 +422,7 @@ def evaluate_strategy(
         context = system.get_context_for_question(qa.question)
         
         if use_llm:
-            predicted = answer_question_with_llm(llm_service, context, qa.question)
+            predicted = answer_question_with_llm(llm_service, context, qa.question, seed=llm_seed)
         else:
             predicted, _ = answer_question_from_context(context, qa.question, qa.answer)
         
@@ -477,7 +484,8 @@ def run_ablation_study(
     output_file: str = None,
     use_llm: bool = True,
     llm_model: str = "llama-3.1-8b-instant",
-    verbose: bool = True
+    verbose: bool = True,
+    seed: int = 42
 ):
     """
     Run the full ablation study.
@@ -496,7 +504,7 @@ def run_ablation_study(
     
     # Generate benchmark dataset
     print("\nGenerating benchmark dataset...")
-    generator = BenchmarkGenerator(seed=42)
+    generator = BenchmarkGenerator(seed=seed)
     dataset = generator.generate_benchmark_dataset(
         num_conversations=num_conversations,
         interactions_per_conversation=interactions_per_conversation
@@ -545,7 +553,9 @@ def run_ablation_study(
             embedding_service=embedding_service,
             forget_threshold=forget_threshold,
             llm_service=llm_service,
-            verbose=verbose
+            verbose=verbose,
+            random_seed=seed,
+            llm_seed=seed
         )
         results.append(result)
     
@@ -598,6 +608,7 @@ def run_ablation_study(
                 "forget_threshold": forget_threshold,
                 "use_llm": use_llm,
                 "llm_model": llm_model if use_llm else None,
+                "seed": seed,
             },
             "results": [r.to_dict() for r in results],
             "api_usage": llm_service.get_usage_stats() if llm_service else None
@@ -621,6 +632,7 @@ if __name__ == "__main__":
     parser.add_argument("--no-llm", action="store_true", help="Disable LLM (use word-overlap fallback)")
     parser.add_argument("--model", type=str, default="llama-3.1-8b-instant", help="Groq model for QA")
     parser.add_argument("--quiet", action="store_true", help="Reduce output")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed (default: 42)")
     
     args = parser.parse_args()
     
@@ -631,5 +643,6 @@ if __name__ == "__main__":
         output_file=args.output,
         use_llm=not args.no_llm,
         llm_model=args.model,
-        verbose=not args.quiet
+        verbose=not args.quiet,
+        seed=args.seed
     )

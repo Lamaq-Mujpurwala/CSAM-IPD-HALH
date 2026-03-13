@@ -168,7 +168,8 @@ class HostedLLMService:
         prompt: str,
         system_prompt: Optional[str] = None,
         temperature: float = 0.7,
-        max_tokens: int = 512
+        max_tokens: int = 512,
+        seed: Optional[int] = None
     ) -> str:
         """
         Generate text completion using OpenAI-compatible chat API.
@@ -189,6 +190,8 @@ class HostedLLMService:
             "max_tokens": max_tokens,
             "stream": False
         }
+        if seed is not None:
+            payload["seed"] = seed
         
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -225,7 +228,7 @@ class HostedLLMService:
                 self._rotate_key()
                 logger.warning(f"Rate limited by {self.provider}. Waiting {retry_after}s... (rotated to key {self._key_index + 1}/{len(self._api_keys)})")
                 time.sleep(retry_after)
-                return self.generate(prompt, system_prompt, temperature, max_tokens)
+                return self.generate(prompt, system_prompt, temperature, max_tokens, seed=seed)
             else:
                 logger.error(f"{self.provider} error: {response.status_code} - {response.text[:200]}")
                 return ""
@@ -310,7 +313,8 @@ JSON:"""
         context: str,
         user_message: str,
         persona: Optional[str] = None,
-        mode: str = "chat"
+        mode: str = "chat",
+        seed: Optional[int] = None
     ) -> str:
         """Generate NPC response given context. Same as LLMService."""
         if mode == "qa":
@@ -336,7 +340,7 @@ Your response:"""
             system = persona or "You are a helpful NPC with a good memory. Be friendly and reference past conversations when relevant."
             temperature = 0.7
         
-        return self.generate(prompt, system_prompt=system, temperature=temperature, max_tokens=150)
+        return self.generate(prompt, system_prompt=system, temperature=temperature, max_tokens=150, seed=seed)
     
     def _rotate_key(self):
         """Rotate to the next API key."""

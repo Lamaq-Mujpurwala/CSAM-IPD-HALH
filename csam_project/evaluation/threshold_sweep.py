@@ -48,6 +48,7 @@ def run_threshold_sweep(
     output_file: str | None = None,
     llm_model: str = "llama-3.1-8b-instant",
     verbose: bool = True,
+    seed: int = 42,
 ) -> None:
     """Run CA strategy at multiple thresholds + a No-Forgetting baseline."""
     thresholds = thresholds or DEFAULT_THRESHOLDS
@@ -64,7 +65,7 @@ def run_threshold_sweep(
 
     # ── Dataset (single generation, reused) ───────────────────
     print("\nGenerating benchmark dataset...")
-    generator = BenchmarkGenerator(seed=42)
+    generator = BenchmarkGenerator(seed=seed)
     dataset = generator.generate_benchmark_dataset(
         num_conversations=num_conversations,
         interactions_per_conversation=interactions_per_conversation,
@@ -95,6 +96,8 @@ def run_threshold_sweep(
         forget_threshold=99999,
         llm_service=llm_service,
         verbose=verbose,
+        random_seed=seed,
+        llm_seed=seed,
     )
     nf_elapsed = time.time() - t0
     print(f"  → F1={nf_result.overall_f1:.4f}  mem={nf_result.memory_count}  "
@@ -120,6 +123,8 @@ def run_threshold_sweep(
             forget_threshold=thresh,
             llm_service=llm_service,
             verbose=verbose,
+            random_seed=seed,
+            llm_seed=seed,
         )
 
         elapsed = time.time() - t0
@@ -203,6 +208,7 @@ def run_threshold_sweep(
                            "gamma": 0.25, "delta": 0.25},
             "consolidation_threshold": 0.3,
             "llm_model": llm_model,
+            "seed": seed,
         },
         "no_forgetting": {
             "overall_f1": round(nf_result.overall_f1, 4),
@@ -250,6 +256,10 @@ if __name__ == "__main__":
         "--quiet", action="store_true",
         help="Reduce per-question output",
     )
+    parser.add_argument(
+        "--seed", type=int, default=42,
+        help="Random seed (default: 42)",
+    )
 
     args = parser.parse_args()
 
@@ -260,4 +270,5 @@ if __name__ == "__main__":
         output_file=args.output,
         llm_model=args.model,
         verbose=not args.quiet,
+        seed=args.seed,
     )

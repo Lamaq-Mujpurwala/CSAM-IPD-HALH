@@ -88,7 +88,8 @@ class MemoryRepository:
         max_memories: int = 100000,
         ef_construction: int = 200,
         M: int = 16,
-        ef_search: int = 50
+        ef_search: int = 50,
+        random_seed: int = 42
     ):
         """
         Initialize the memory repository.
@@ -105,6 +106,7 @@ class MemoryRepository:
         self.ef_construction = ef_construction
         self.M = M
         self.ef_search = ef_search
+        self.random_seed = random_seed
         
         # Memory storage
         self._memories: Dict[str, Memory] = {}
@@ -125,7 +127,8 @@ class MemoryRepository:
                 self._index.init_index(
                     max_elements=self.max_memories,
                     ef_construction=self.ef_construction,
-                    M=self.M
+                    M=self.M,
+                    random_seed=self.random_seed
                 )
                 self._index.set_ef(self.ef_search)
                 logger.info(f"Initialized HNSW index: dim={self.embedding_dim}, max={self.max_memories}")
