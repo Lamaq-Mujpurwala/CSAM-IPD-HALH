@@ -23,6 +23,7 @@ import sys
 import re
 import time
 import argparse
+import random
 import numpy as np
 from collections import Counter
 from datetime import datetime
@@ -35,6 +36,7 @@ sys.path.insert(0, project_root)
 from simulation.npc import NPC, NPCPersonality
 from csam_core.services.embedding import EmbeddingService
 from csam_core.services.llm_hosted import HostedLLMService, PROVIDERS
+from benchmarks.checkpoint import BenchmarkCheckpoint
 
 # Load env from .env file if present
 from dotenv import load_dotenv
@@ -97,6 +99,8 @@ def run_hotpotqa_benchmark(
     model: str,
     display_name: str,
     limit_questions: int = 50,
+    seed: int = 42,
+    checkpoint_dir: str | None = None,
 ):
     """
     Run HotPotQA multi-hop QA benchmark with a specific hosted model.
@@ -125,9 +129,12 @@ def run_hotpotqa_benchmark(
         data = json.load(f)
     print(f"Loaded {len(data)} entries")
 
+    random.seed(seed)
+    np.random.seed(seed)
+    random.shuffle(data)
     if limit_questions and limit_questions < len(data):
         data = data[:limit_questions]
-    print(f"Evaluating {len(data)} questions")
+    print(f"Evaluating {len(data)} questions (seed={seed})")
 
     # Initialize shared services
     print("Initializing services...")
@@ -139,6 +146,18 @@ def run_hotpotqa_benchmark(
         print(f"   Check API key: ${PROVIDERS[provider]['env_key']}")
         return None
     print(f"[OK] Connected to {provider} ({model})")
+
+    # ── Checkpoint ──────────────────────────────────────────────────────────────
+    ckpt = BenchmarkCheckpoint.for_run(
+        benchmark="hotpotqa",
+        provider=provider,
+        model=model,
+        seed=seed,
+        questions=len(data),
+        checkpoint_dir=checkpoint_dir,
+    )
+    if ckpt.num_completed() > 0:
+        print(f"[RESUME] Resuming from checkpoint: {ckpt.num_completed()} / {len(data)} done")
 
     # ── Run QA ──────────────────────────────────────────────────────────────────
     print(f"\nRunning QA Evaluation ({len(data)} questions)...")
@@ -156,6 +175,17 @@ def run_hotpotqa_benchmark(
         q_id = entry.get('_id', f'q_{i}')
         context_list = entry.get('context', [])
         supporting_facts = entry.get('supporting_facts', [])
+
+        # Resume from checkpoint
+        if ckpt.is_done(q_id):
+            saved = ckpt.get_result(q_id)
+            f1_scores.append(saved["f1"])
+            em_scores.append(saved["em"])
+            latencies.append(saved["latency_ms"])
+            type_f1.setdefault(saved["type"], []).append(saved["f1"])
+            qa_details.append(saved)
+            print(f"  [SKIP] Q{i+1}/{len(data)} [{saved['type']}] F1={saved['f1']:.3f} (checkpoint)")
+            continue
 
         t0 = time.time()
 
@@ -255,6 +285,9 @@ def run_hotpotqa_benchmark(
             "context_preview": context[:300],
         })
 
+        # Save to checkpoint immediately
+        ckpt.add_result(q_id, qa_details[-1])
+
         status_icon = "[OK]" if f1 > 0.5 else "⚠️" if f1 > 0 else "[FAIL]"
         print(f"  {status_icon} Q{i+1}/{len(data)} [{q_type}] F1={f1:.3f} EM={em:.0f} | {latency:.0f}ms")
         print(f"       Truth: '{truth[:60]}'")
@@ -290,6 +323,7 @@ def run_hotpotqa_benchmark(
         "model": model,
         "display_name": display_name,
         "dataset": os.path.basename(dataset_path),
+        "seed": seed,
         "num_questions": len(f1_scores),
         "avg_f1": avg_f1,
         "avg_em": avg_em,
@@ -304,21 +338,27 @@ def run_hotpotqa_benchmark(
 
     # Save results
     safe_model_name = model.replace("/", "_").replace(":", "_")
-    output_file = os.path.join(project_root, "benchmarks", f"results_hotpotqa_{provider}_{safe_model_name}.json")
+    output_file = os.path.join(project_root, "benchmarks", f"results_hotpotqa_{provider}_{safe_model_name}_s{seed}.json")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
     print(f"\nResults saved to: {output_file}")
 
+    ckpt.delete()
     return results
 
 
-def run_all_models(dataset_path: str, limit_questions: int = 50):
+def run_all_models(
+    dataset_path: str,
+    limit_questions: int = 50,
+    seed: int = 42,
+    checkpoint_dir: str | None = None,
+) -> list:
     """Run HotPotQA benchmark across all configured models."""
     all_results = []
 
     print("\n" + "=" * 70)
     print("CSAM MULTI-MODEL COMPARATIVE BENCHMARK — HotPotQA")
-    print(f"Testing {len(ALL_MODELS)} models ({limit_questions} questions each)")
+    print(f"Testing {len(ALL_MODELS)} models ({limit_questions} questions each, seed={seed})")
     print("=" * 70)
 
     for provider, model, display_name, size in ALL_MODELS:
@@ -329,6 +369,8 @@ def run_all_models(dataset_path: str, limit_questions: int = 50):
                 model=model,
                 display_name=display_name,
                 limit_questions=limit_questions,
+                seed=seed,
+                checkpoint_dir=checkpoint_dir,
             )
             if result:
                 all_results.append(result)
@@ -357,6 +399,7 @@ def run_all_models(dataset_path: str, limit_questions: int = 50):
             "timestamp": datetime.now().isoformat(),
             "benchmark": "hotpotqa_multimodel",
             "num_questions": limit_questions,
+            "seed": seed,
             "results": [
                 {
                     "model": r['display_name'],
@@ -391,8 +434,14 @@ def main():
                         help="Run all preconfigured models")
     parser.add_argument("--dataset", type=str, default="benchmarks/data/hotpotqa_dev.json",
                         help="Path to HotPotQA dataset")
+    parser.add_argument("--seed", type=int, default=42,
+                        help="Random seed for reproducible question sampling (default: 42)")
+    parser.add_argument("--checkpoint-dir", type=str, default=None,
+                        help="Directory for checkpoint files (default: benchmarks/ dir)")
 
     args = parser.parse_args()
+    random.seed(args.seed)
+    np.random.seed(args.seed)
 
     # Resolve dataset path
     dataset_path = args.dataset
@@ -404,7 +453,12 @@ def main():
         return 1
 
     if args.all:
-        run_all_models(dataset_path, limit_questions=args.questions)
+        run_all_models(
+            dataset_path,
+            limit_questions=args.questions,
+            seed=args.seed,
+            checkpoint_dir=args.checkpoint_dir,
+        )
     else:
         model = args.model or "llama-3.1-8b-instant"
         display_name = model.split("/")[-1] if "/" in model else model
@@ -414,6 +468,8 @@ def main():
             model=model,
             display_name=display_name,
             limit_questions=args.questions,
+            seed=args.seed,
+            checkpoint_dir=args.checkpoint_dir,
         )
 
     return 0
