@@ -227,7 +227,7 @@ class NPC:
         if player_name:
             recent_items = self.working_memory.get_recent(player_name, k=3)
             if recent_items:
-                context_parts.append("Recent Coversation:")
+                context_parts.append("Recent Conversation:")
                 for item in recent_items:
                     context_parts.append(f"- {item.text}")
                 context_parts.append("\nRelevant Memories:")

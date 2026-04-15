@@ -29,7 +29,11 @@ logger = logging.getLogger(__name__)
 
 class ForgettingStrategy(ABC):
     """Abstract base class for forgetting strategies."""
-    
+
+    def __init__(self) -> None:
+        # Populated after every select_to_forget call — used for FFR computation
+        self.last_forgotten_ids: List[str] = []
+
     @abstractmethod
     def compute_forget_scores(
         self,
@@ -38,17 +42,17 @@ class ForgettingStrategy(ABC):
     ) -> Dict[str, float]:
         """
         Compute forget scores for memories.
-        
+
         Args:
             memories: List of memories to score
             **kwargs: Additional context (e.g., consolidation_tracker, l3_graph)
-            
+
         Returns:
             Dictionary of {memory_id: forget_score}
             Higher scores = more likely to forget
         """
         pass
-    
+
     def select_to_forget(
         self,
         memories: List[Memory],
@@ -57,48 +61,54 @@ class ForgettingStrategy(ABC):
     ) -> List[str]:
         """
         Select memories to forget.
-        
+
         Args:
             memories: List of candidate memories
             count: Number of memories to select for deletion
             **kwargs: Additional context
-            
+
         Returns:
             List of memory IDs to delete
         """
         scores = self.compute_forget_scores(memories, **kwargs)
-        
-        # Sort by score (highest first = most forgettable)
         sorted_ids = sorted(scores.keys(), key=lambda x: scores[x], reverse=True)
-        
-        return sorted_ids[:count]
+        result = sorted_ids[:count]
+        self.last_forgotten_ids = result
+        return result
 
 
 class NoForgetting(ForgettingStrategy):
     """
     Baseline: Never forget anything.
-    
+
     This will cause memory to grow unbounded and is only useful
     as a baseline to show the problems with not forgetting.
     """
-    
+
+    def __init__(self) -> None:
+        super().__init__()
+
     def compute_forget_scores(self, memories: List[Memory], **kwargs) -> Dict[str, float]:
         """All memories get score 0 (never forget)."""
         return {m.id: 0.0 for m in memories}
-    
+
     def select_to_forget(self, memories: List[Memory], count: int, **kwargs) -> List[str]:
         """Never select any memories to forget."""
+        self.last_forgotten_ids = []
         return []
 
 
 class LRUForgetting(ForgettingStrategy):
     """
     Baseline: Least Recently Used (LRU) forgetting.
-    
+
     Forgets memories that haven't been accessed recently,
     regardless of their importance or consolidation status.
     """
-    
+
+    def __init__(self) -> None:
+        super().__init__()
+
     def compute_forget_scores(self, memories: List[Memory], **kwargs) -> Dict[str, float]:
         """Score based on time since last access (longer = higher score)."""
         now = datetime.now()
@@ -117,12 +127,15 @@ class LRUForgetting(ForgettingStrategy):
 class ImportanceForgetting(ForgettingStrategy):
     """
     Baseline: Importance-based forgetting.
-    
+
     Forgets least important memories first.
     This is a common approach but has the weakness that
     importance is subjectively assigned at creation time.
     """
-    
+
+    def __init__(self) -> None:
+        super().__init__()
+
     def compute_forget_scores(self, memories: List[Memory], **kwargs) -> Dict[str, float]:
         """Score based on inverse importance."""
         return {m.id: 1.0 - m.importance for m in memories}
@@ -131,16 +144,17 @@ class ImportanceForgetting(ForgettingStrategy):
 class RecencyImportanceForgetting(ForgettingStrategy):
     """
     Baseline: Combined recency and importance (like Generative Agents).
-    
+
     ForgetScore = α·R(m) + β·(1-I(m))
     """
-    
+
     def __init__(self, alpha: float = 0.5, beta: float = 0.5):
         """
         Args:
             alpha: Weight for recency
             beta: Weight for inverse importance
         """
+        super().__init__()
         self.alpha = alpha
         self.beta = beta
     
@@ -205,16 +219,16 @@ class ConsolidationAwareForgetting(ForgettingStrategy):
                                     unconsolidated memories survive until L3 captures
                                     their content.
         """
+        super().__init__()
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
         self.delta = delta
         self.consolidation_threshold = consolidation_threshold
-        
-        # Validate weights sum to ~1
+
         total = alpha + beta + gamma + delta
         if abs(total - 1.0) > 0.01:
-            logger.warning(f"Forgetting weights sum to {total}, expected ~1.0")
+            logger.warning("Forgetting weights sum to %.3f, expected ~1.0", total)
     
     def compute_forget_scores(
         self,
@@ -296,11 +310,10 @@ class ConsolidationAwareForgetting(ForgettingStrategy):
         
         # Filter out protected memories (score = 0)
         forgettable = {mid: score for mid, score in scores.items() if score > 0}
-        
-        # Sort by score (highest first)
         sorted_ids = sorted(forgettable.keys(), key=lambda x: forgettable[x], reverse=True)
-        
-        return sorted_ids[:count]
+        result = sorted_ids[:count]
+        self.last_forgotten_ids = result
+        return result
     
     @staticmethod
     def _batch_cosine_similarity(query: np.ndarray, matrix: np.ndarray) -> np.ndarray:

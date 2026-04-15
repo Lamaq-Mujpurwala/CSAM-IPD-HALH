@@ -293,13 +293,19 @@ class MemoryRepository:
         """
         if memory_id not in self._memories:
             return False
-        
-        # Remove from our storage
+
+        # Remove from memory storage
         del self._memories[memory_id]
-        
-        # Note: We can't remove from HNSW, but since we check _memories
-        # in retrieve(), it effectively won't be returned
-        logger.debug(f"Deleted memory {memory_id[:8]}... (remaining: {len(self)})")
+
+        # Clean up index mappings to prevent unbounded dict growth (BUG-07).
+        # The HNSW vector at index_pos still exists inside the index (hnswlib
+        # has no true delete), but since _index_to_id no longer maps that slot,
+        # retrieve() will skip it via the `if memory_id` guard.
+        index_pos = self._id_to_index.pop(memory_id, None)
+        if index_pos is not None:
+            self._index_to_id.pop(index_pos, None)
+
+        logger.debug("Deleted memory %s... (remaining: %d)", memory_id[:8], len(self))
         return True
     
     def delete_batch(self, memory_ids: List[str]) -> int:

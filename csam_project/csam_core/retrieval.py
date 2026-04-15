@@ -94,35 +94,35 @@ class HybridRetriever:
         self.enable_graph_expansion = enable_graph_expansion
         self.max_expansion_hops = max_expansion_hops
     
-    async def retrieve(
+    def retrieve(
         self,
         query_embedding: np.ndarray,
         k: int = 5,
         l2_k: Optional[int] = None,
         l3_k: Optional[int] = None,
-        metadata_filter: Optional[Dict[str, Any]] = None  # ⭐ NEW: Filter for L2 queries
+        metadata_filter: Optional[Dict[str, Any]] = None
     ) -> RetrievalResult:
         """
         Perform hybrid retrieval.
-        
+
         Args:
             query_embedding: Query vector
             k: Total number of final results
             l2_k: Number of L2 candidates (default: 2*k)
             l3_k: Number of L3 seed candidates (default: k)
             metadata_filter: Metadata filter for L2 queries (e.g., {"player_name": "Alice"})
-            
+
         Returns:
             RetrievalResult with combined and raw results
         """
         l2_k = l2_k or k * 2
         l3_k = l3_k or k
-        
-        # Step 1: Query L2 (episodic memories) WITH METADATA FILTER
-        l2_results = await self.memory_repo.retrieve(
-            query_embedding, 
+
+        # Step 1: Query L2 (episodic memories)
+        l2_results = self.memory_repo.retrieve(
+            query_embedding,
             k=l2_k,
-            metadata_filter=metadata_filter  # ⭐ Pass filter to L2!
+            metadata_filter=metadata_filter,
         )
         
         # Step 2: Query L3 (knowledge graph)
@@ -285,25 +285,25 @@ class HybridRetriever:
             diversity_score=diversity
         )
     
-    async def retrieve_text(
+    def retrieve_text(
         self,
         query_text: str,
         embedding_service,
-        k: int = 5
+        k: int = 5,
     ) -> RetrievalResult:
         """
-        Convenience method for text queries (async version).
-        
+        Convenience method for text queries.
+
         Args:
             query_text: Text query
             embedding_service: EmbeddingService instance
             k: Number of results
-            
+
         Returns:
             RetrievalResult
         """
         query_embedding = embedding_service.encode(query_text)
-        return await self.retrieve(query_embedding, k=k)
+        return self.retrieve(query_embedding, k=k)
     
     @staticmethod
     def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:

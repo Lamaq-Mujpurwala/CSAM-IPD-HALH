@@ -113,6 +113,7 @@ def run_musique_benchmark(
     limit_questions: int = 50,
     seed: int = 42,
     checkpoint_dir: str | None = None,
+    no_l3: bool = False,
 ):
     """
     Run MuSiQue multi-hop QA benchmark with a specific hosted model.
@@ -123,11 +124,16 @@ def run_musique_benchmark(
       2. Ingest all paragraphs as L2 memories with "[Title] content" format.
       3. Clear L1, then do direct k=20 retrieval + LLM QA.
 
+    Args:
+        no_l3: When True, skip L3 KG retrieval and use L2 context only.
+               Used for PB-13 (L3 isolation by hop count experiment).
+
     Returns:
         Dictionary of results.
     """
+    l3_label = " [L2-only, no-L3]" if no_l3 else ""
     print(f"\n{'='*70}")
-    print(f"BENCHMARK: CSAM + {display_name} ({provider}) — MuSiQue")
+    print(f"BENCHMARK: CSAM + {display_name} ({provider}) — MuSiQue{l3_label}")
     print(f"Model: {model}")
     print(f"{'='*70}")
 
@@ -162,8 +168,9 @@ def run_musique_benchmark(
     print(f"[OK] Connected to {provider} ({model})")
 
     # ── Checkpoint ──────────────────────────────────────────────────────────────
+    bench_tag = "musique_nol3" if no_l3 else "musique"
     ckpt = BenchmarkCheckpoint.for_run(
-        benchmark="musique",
+        benchmark=bench_tag,
         provider=provider,
         model=model,
         seed=seed,
@@ -323,6 +330,7 @@ def run_musique_benchmark(
         "display_name": display_name,
         "dataset": os.path.basename(dataset_path),
         "seed": seed,
+        "no_l3": no_l3,
         "num_questions": len(f1_scores),
         "avg_f1": avg_f1,
         "avg_em": avg_em,
@@ -337,7 +345,8 @@ def run_musique_benchmark(
 
     # Save results
     safe_model_name = model.replace("/", "_").replace(":", "_")
-    output_file = os.path.join(project_root, "benchmarks", f"results_musique_{provider}_{safe_model_name}_s{seed}.json")
+    l3_suffix = "_nol3" if no_l3 else ""
+    output_file = os.path.join(project_root, "benchmarks", f"results_musique_{provider}_{safe_model_name}_s{seed}{l3_suffix}.json")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
     print(f"\nResults saved to: {output_file}")
@@ -351,6 +360,7 @@ def run_all_models(
     limit_questions: int = 50,
     seed: int = 42,
     checkpoint_dir: str | None = None,
+    no_l3: bool = False,
 ) -> list:
     """Run MuSiQue benchmark across all configured models."""
     all_results = []
@@ -370,6 +380,7 @@ def run_all_models(
                 limit_questions=limit_questions,
                 seed=seed,
                 checkpoint_dir=checkpoint_dir,
+                no_l3=no_l3,
             )
             if result:
                 all_results.append(result)
@@ -437,6 +448,8 @@ def main():
                         help="Random seed for reproducible question sampling (default: 42)")
     parser.add_argument("--checkpoint-dir", type=str, default=None,
                         help="Directory for checkpoint files (default: benchmarks/ dir)")
+    parser.add_argument("--no-l3", action="store_true",
+                        help="Disable L3 KG retrieval (PB-13: L3 isolation experiment)")
 
     args = parser.parse_args()
     random.seed(args.seed)
@@ -457,6 +470,7 @@ def main():
             limit_questions=args.questions,
             seed=args.seed,
             checkpoint_dir=args.checkpoint_dir,
+            no_l3=args.no_l3,
         )
     else:
         model = args.model or "llama-3.1-8b-instant"
@@ -469,6 +483,7 @@ def main():
             limit_questions=args.questions,
             seed=args.seed,
             checkpoint_dir=args.checkpoint_dir,
+            no_l3=args.no_l3,
         )
 
     return 0

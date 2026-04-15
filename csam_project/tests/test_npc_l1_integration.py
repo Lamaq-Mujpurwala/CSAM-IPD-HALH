@@ -82,7 +82,7 @@ def test_npc_l1_integration():
     print(context)
     print("-" * 20)
     
-    if "Recent Coversation:" in context and "Debra" in context:
+    if "Recent Conversation:" in context and "Debra" in context:
         print("  + L1 Context injection WORKING")
     else:
         print("  X L1 Context injection FAILED")

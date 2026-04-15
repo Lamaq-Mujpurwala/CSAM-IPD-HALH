@@ -66,8 +66,11 @@ class EvaluationResult:
     memory_bytes: int
     avg_latency_ms: float
     consolidation_ratio: float
+    # PB-12: fraction of evicted memories that lacked L3 backing (C(m) < 0.3)
+    # Lower = smarter forgetting. Expected: CA≈0, others > 0.
+    false_forgetting_rate: float = 0.0
     qa_details: List[Dict[str, Any]] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "strategy": self.strategy_name,
@@ -77,7 +80,8 @@ class EvaluationResult:
             "memory_bytes_mb": self.memory_bytes / 1e6,
             "avg_latency_ms": self.avg_latency_ms,
             "consolidation_ratio": self.consolidation_ratio,
-            "qa_details": self.qa_details
+            "false_forgetting_rate": self.false_forgetting_rate,
+            "qa_details": self.qa_details,
         }
 
 
@@ -139,6 +143,12 @@ class MemorySystemWithForgetting:
             knowledge_graph=self.knowledge_graph,
             mmr_lambda=0.5
         )
+
+        # PB-12: False Forgetting Rate counters
+        # A "false forget" = evicting a memory whose consolidation coverage < 0.3
+        # (meaning it had no meaningful L3 backup before being deleted)
+        self._ffr_false_events: int = 0
+        self._ffr_total_events: int = 0
     
     def add_memory(self, text: str, importance: float = 0.5) -> str:
         """Add a memory and trigger forgetting/consolidation if needed."""
@@ -174,11 +184,20 @@ class MemorySystemWithForgetting:
             l3_embeddings=l3_embeddings
         )
         
+        # PB-12: Track false forgetting rate before deletion
+        forgotten_set = set(to_forget)
+        self._ffr_total_events += len(to_forget)
+        for m in memories:
+            if m.id in forgotten_set:
+                coverage = self.consolidation_tracker.get_coverage(m.id)
+                if coverage < 0.3:  # evicted without adequate L3 backup
+                    self._ffr_false_events += 1
+
         # Delete selected memories
         self.memory_repo.delete_batch(to_forget)
-        
+
         # Rebuild HNSW index periodically to reclaim soft-deleted vectors
-        if not hasattr(self, '_forget_cycles'):
+        if not hasattr(self, "_forget_cycles"):
             self._forget_cycles = 0
         self._forget_cycles += 1
         if self._forget_cycles % 5 == 0:
@@ -211,12 +230,17 @@ class MemorySystemWithForgetting:
         # Estimate memory usage (rough)
         memory_bytes = len(memories) * (384 * 4 + 200)  # embedding + metadata
         
+        ffr = (
+            self._ffr_false_events / self._ffr_total_events
+            if self._ffr_total_events > 0 else 0.0
+        )
         return {
             "memory_count": len(memories),
             "consolidated_count": consolidated,
             "consolidation_ratio": consolidated / len(memories) if memories else 0,
             "l3_nodes": len(self.knowledge_graph),
-            "memory_bytes": memory_bytes
+            "memory_bytes": memory_bytes,
+            "false_forgetting_rate": ffr,
         }
 
 
@@ -453,8 +477,9 @@ def evaluate_strategy(
         else:
             f1_scores[qa_type] = 0.0
     
-    overall_f1 = np.mean([s for s in f1_scores.values() if s > 0])
-    
+    # BUG-01 fix: include zero-scoring categories in aggregate (was excluding them)
+    overall_f1 = float(np.mean(list(f1_scores.values()))) if f1_scores else 0.0
+
     stats = system.get_statistics()
     
     if verbose:
@@ -473,7 +498,8 @@ def evaluate_strategy(
         memory_bytes=stats["memory_bytes"],
         avg_latency_ms=avg_latency,
         consolidation_ratio=stats["consolidation_ratio"],
-        qa_details=qa_details
+        false_forgetting_rate=stats["false_forgetting_rate"],
+        qa_details=qa_details,
     )
 
 
@@ -532,14 +558,22 @@ def run_ablation_study(
             print("  [WARN] Groq not available, falling back to word-overlap")
             llm_service = None
     
-    # Define strategies to compare
+    # Define strategies to compare.
+    # PB-11: 5th strategy "CA-Formula-Only" isolates the gate contribution:
+    #   consolidation_threshold=0.0 means the gate never fires (C < 0.0 is never
+    #   true), so all memories are scored by the formula without protection.
+    #   Expected: CA-full > CA-formula-only — proving the gate is load-bearing.
     strategies = [
         ("No-Forgetting", NoForgetting()),
         ("LRU", LRUForgetting()),
         ("Importance", ImportanceForgetting()),
+        ("CA-Formula-Only (no gate)", ConsolidationAwareForgetting(
+            alpha=0.25, beta=0.25, gamma=0.25, delta=0.25,
+            consolidation_threshold=0.0,   # gate disabled — formula runs, no protection
+        )),
         ("Consolidation-Aware (Ours)", ConsolidationAwareForgetting(
             alpha=0.25, beta=0.25, gamma=0.25, delta=0.25,
-            consolidation_threshold=0.3
+            consolidation_threshold=0.3,
         )),
     ]
     
@@ -560,14 +594,18 @@ def run_ablation_study(
         results.append(result)
     
     # Print summary table
-    print("\n" + "=" * 70)
+    print("\n" + "=" * 80)
     print("ABLATION STUDY RESULTS")
-    print("=" * 70)
-    print(f"\n{'Strategy':<30} {'F1 Score':>10} {'Memory':>10} {'Latency':>10} {'Consol.':>10}")
-    print("-" * 70)
-    
+    print("=" * 80)
+    print(f"\n{'Strategy':<32} {'F1':>8} {'Memory':>8} {'Latency':>10} {'Consol.':>9} {'FFR':>8}")
+    print("-" * 80)
+
     for r in results:
-        print(f"{r.strategy_name:<30} {r.overall_f1:>10.3f} {r.memory_count:>10} {r.avg_latency_ms:>9.2f}ms {r.consolidation_ratio:>9.1%}")
+        print(
+            f"{r.strategy_name:<32} {r.overall_f1:>8.3f} {r.memory_count:>8}"
+            f" {r.avg_latency_ms:>8.2f}ms {r.consolidation_ratio:>8.1%}"
+            f" {r.false_forgetting_rate:>7.1%}"
+        )
     
     # Print detailed F1 by type
     print("\n" + "-" * 70)
