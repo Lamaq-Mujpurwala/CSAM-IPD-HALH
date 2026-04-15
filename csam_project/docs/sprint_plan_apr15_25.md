@@ -207,7 +207,7 @@ These were found in the deep audit and must be folded into the sprint:
     python -m csam_project.evaluation.variance_runner --mode sweep --seeds 42 43 44
     ```
 
-**Additional Day 4 tasks (from audit):**
+**Additional Day 4 tasks (from audit + publication review):**
 
 19b. **Verify BUG-06** — check `benchmark_e2e.py`: does the test explicitly call `npc.consolidate()` or equivalent between ingestion and the forgetting phase? If not, `ConsolidationAwareForgetting` is running with `C(m)=0` for all memories (degenerate — everything is protected), making the ablation meaningless.
 - Read `benchmark_e2e.py` consolidation trigger logic
@@ -226,6 +226,32 @@ These were found in the deep audit and must be folded into the sprint:
 - Assert consolidated memories (C(m) > threshold) get non-zero score
 - Assert equal-weight formula produces correct ordering
 
+22b. **[PB-11 — CRITICAL] Add CA-no-gate as 5th ablation strategy** (~30 min):
+- In `run_ablation.py` `strategies` list (currently 4 entries), add:
+  ```python
+  ("CA-Formula-Only (no gate)", ConsolidationAwareForgetting(
+      alpha=0.25, beta=0.25, gamma=0.25, delta=0.25,
+      consolidation_threshold=0.0   # gate disabled — formula runs but never protects
+  )),
+  ```
+- This is the single most important addition for a defensible paper.
+- Expected: CA-full > CA-no-gate. If not, the gate claim must be revised before submission.
+- Include this 5th strategy in all variance runner seeds.
+
+23b. **[PB-12 — HIGH] Add False Forgetting Rate logging** (~2 hours):
+- In `forgetting_engine.py`: expose `last_forgotten_ids: list[str]` property, cleared each cycle.
+- In `run_ablation.py` evaluation loop: after each forgetting event, check if any forgotten memory ID is a known supporting-fact memory (the ablation dataset tracks which memories were ingested per QA).
+- Accumulate `false_forgetting_events` / `total_forgetting_events` per strategy.
+- Add `"false_forgetting_rate": float` to `EvaluationResult` and output JSON.
+- Expected: CA has lowest false forgetting rate across all strategies.
+
+24b. **[PB-13 — MEDIUM] Add `--no-l3` flag to `benchmark_musique.py`** (~1 hour):
+- When `--no-l3` is set, skip L3 KG retrieval and use L2 context only.
+- Run MuSiQue with and without L3 for `llama-3.1-8b-instant` (1 model is enough).
+- Report F1 broken down by hop count for both variants.
+- If L3 helps on 3-hop/4-hop and not 1-hop, cite this in Architecture section.
+- If L3 doesn't help, note honestly in Limitations — do not overclaim.
+
 **Day 4 Checklist:**
 - [ ] `metrics.py` created with all 4 functions
 - [ ] `run_ablation.py:456` fixed (no more zero exclusion)
@@ -233,7 +259,10 @@ These were found in the deep audit and must be folded into the sprint:
 - [ ] **BUG-06 verified/fixed** — E2E ablation explicitly triggers consolidation
 - [ ] **`test_consolidation_recall_invariant.py` created and passes** (core claim verified)
 - [ ] **`test_forgetting_strategy_ranking.py` created and passes**
-- [ ] Variance ablation run started
+- [ ] **[PB-11] CA-no-gate 5th strategy added to `run_ablation.py`**
+- [ ] **[PB-12] False Forgetting Rate field in `EvaluationResult` and output JSON**
+- [ ] **[PB-13] `--no-l3` flag added to `benchmark_musique.py`; hop-breakdown run**
+- [ ] Variance ablation run started (5 strategies × 5 seeds)
 - [ ] Variance sweep run started
 - [ ] Before/after ablation F1 numbers recorded
 - [ ] `consolidation_status` added to ablation output JSON
@@ -656,10 +685,55 @@ python -m csam_project.simulation.tui_demo \
 
 All notebooks should: (a) load `.env` from Google Drive, (b) use `--checkpoint-dir` pointing to Drive so progress survives session resets, (c) save final JSON to Drive.
 
+---
+
+## PUBLICATION DEFENSIBILITY VERDICT (Apr 15)
+
+### Final Assessment
+
+| Tier | Verdict |
+|------|---------|
+| Workshop / national conference (CIS, ICCIS, AIC) | **Submission-ready after Day 5** if PB-02/03/11 are closed |
+| Mid-tier (CoLLAs, ACL findings) | **Submission-ready after Day 7** — needs canonical numbers + CA-gate ablation |
+| Top-tier (EMNLP main) | Needs 1 more cycle — variance, FFR metric, and L3 isolation all expected |
+
+### Why These 3 New Gaps Are Sprint-Critical (Not Separate)
+
+**They must be fixed before the canonical runs start.** If PB-11/12/13 are left until later:
+- You will run the ablation on Day 4 with only 4 strategies → realize Day 8 you're missing the gate comparison → re-run everything from scratch, burning 2 days you don't have.
+- The False Forgetting Rate cannot be computed retroactively without re-running with logging enabled.
+- The L3 hop-breakdown needs one extra run on MuSiQue — cheapest to do Day 4 while cloud is already running.
+
+**Each costs ≤2h of code. The cost of deferring is a full re-run.**
+
+### What Makes This Paper Defensible
+
+The paper will be defensible when it can answer all of the following without hesitation:
+1. *Why is your baseline fair?* → Same model, same k, same embedding, same prompt (PB-03 ✓)
+2. *Is the gate the contribution or just the formula?* → CA-full beats CA-no-gate (PB-11 ✓)
+3. *How do you know you're not randomly forgetting?* → False Forgetting Rate (PB-12 ✓)
+4. *Does L3 actually help?* → MuSiQue F1-by-hop with/without L3 (PB-13 ✓)
+5. *Are your numbers stable?* → ±std across 5 seeds (PB-05 ✓)
+6. *Are your metrics fair?* → Zero-inclusive F1, canonical metrics.py (PB-08 ✓)
+
 ### Next Agent Starting Point
 
-Start at **Day 2 — `benchmark_multimodel.py`**:
-1. Add `--seed`, `--max-conversations` args
-2. Wire in `BenchmarkCheckpoint` (already exists at `benchmarks/checkpoint.py`)
-3. Fix PB-02: change LoCoMo loop from 1 conversation to all conversations (or `--max-conversations N`)
-4. Then move to Day 3: create `benchmark_baseline_rag_hosted.py`
+**Day 2 — `benchmark_multimodel.py`** (PB-02 is the critical path blocker):
+1. Add `--seed`, `--max-conversations` args; wire in `BenchmarkCheckpoint` (`benchmarks/checkpoint.py` exists)
+2. Fix PB-02: remove `data[0]` hardcode at line ~149; add outer conversation loop
+3. Add bootstrap 95% CI and protocol fingerprint block to output JSON
+
+**Day 3 — `benchmark_baseline_rag_hosted.py`** (new file, PB-03):
+- Flat L2-only agent, identical model/k/embedding/prompt as CSAM benchmark
+- `compare_csam_vs_baseline.py` validates protocol parity before computing delta
+
+**Day 4 — Ablation fixes (PB-08, PB-11, PB-12, PB-13 all in same session):**
+- Fix F1 zero-exclusion bug (`run_ablation.py:456`)
+- Add 5th strategy CA-no-gate (PB-11) — 30 min, HIGHEST PRIORITY
+- Add False Forgetting Rate logging (PB-12) — 2h
+- Add `--no-l3` to MuSiQue (PB-13) — 1h
+- BUG-05: `test_consolidation_recall_invariant.py`
+- BUG-06: verify consolidation fires before forgetting in E2E
+- Start variance runs (5 strategies × 5 seeds) overnight
+
+**All Day 4 engineering must be done before starting any cloud notebook runs for ablation.**

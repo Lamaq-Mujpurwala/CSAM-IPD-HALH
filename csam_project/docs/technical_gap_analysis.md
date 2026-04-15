@@ -271,6 +271,86 @@ Done criteria:
 - Only active blockers remain in the canonical gaps doc.
 - Historical items are marked fixed or moved to archive notes.
 
+---
+
+## PB-11: CA gate is never isolated in the ablation — the core novel contribution is untested
+
+Severity: Critical
+
+Evidence:
+- `run_ablation.py` defines 4 strategies: `NoForgetting`, `LRUForgetting`, `ImportanceForgetting`, `ConsolidationAwareForgetting(threshold=0.3)`.
+- No strategy tests `ConsolidationAwareForgetting(threshold=0.0)` (gate disabled, formula runs but never protects any memory).
+- The novel contribution is specifically the protection gate `C(m) < θ → F(m) = 0`, not the 4-factor formula.
+- Current ablation only proves "CA formula beats LRU/Importance". It does not prove the gate is responsible.
+
+Why this blocks publication:
+- Reviewer: *"You claim the consolidation gate is your contribution, but your ablation only compares against much simpler baselines. You never show the gate itself is load-bearing."*
+- This is the single most likely reason the paper gets rejected at any venue above workshop level.
+
+Required fix:
+1. Add 5th ablation strategy: `ConsolidationAwareForgetting(alpha=0.25, beta=0.25, gamma=0.25, delta=0.25, consolidation_threshold=0.0)` labelled `"CA-Formula-Only (no gate)"`.
+2. Expected result: CA with gate > CA without gate. If not, the gate claim is false and must be revised.
+3. Re-run variance runner to include this 5th strategy in mean/std tables.
+
+Done criteria:
+- 5 strategies in ablation output.
+- Paper ablation table has a "CA (no gate)" row that CA (full) beats.
+- Claims about the gate are backed by a direct comparison.
+
+---
+
+## PB-12: No measurement of whether the system forgets the right memories
+
+Severity: High
+
+Evidence:
+- `forgetting_engine.py` evicts memories based on the CA formula but does not log which memories were evicted.
+- No post-run analysis measures whether evicted memories were relevant to subsequent queries.
+- The paper claims "consolidation-aware forgetting retains high-value memories" — this is currently an architectural claim with no empirical support.
+
+Why this blocks publication:
+- Reviewer: *"How do you know you're not just randomly evicting memories and getting lucky on the benchmark? You claim smart forgetting but never measure whether the forgetting was actually smart."*
+- A "False Forgetting Rate" — the fraction of evicted memories that appear in ground-truth supporting facts — would directly answer this.
+
+Required fix:
+1. In `forgetting_engine.py`, add a `_last_forgotten_ids: list[str]` log cleared before each forgetting cycle.
+2. In ablation evaluation loop (`run_ablation.py`), at each forgetting event, check if any forgotten memory ID matches a QA supporting-fact memory ID. Accumulate as `false_forgetting_events / total_forgetting_events`.
+3. Report `false_forgetting_rate` per strategy in the ablation output JSON.
+4. Expected result: CA has lower false forgetting rate than LRU/Importance. This is the empirical proof.
+
+Done criteria:
+- `false_forgetting_rate` field present in every `EvaluationResult`.
+- CA strategy has measurably lower false forgetting rate than baselines.
+- Paper cites this metric in the ablation analysis section.
+
+---
+
+## PB-13: L3 knowledge graph contribution to multi-hop QA is not isolated
+
+Severity: Medium
+
+Evidence:
+- MuSiQue and HotPotQA benchmarks use `npc.memory_repo.retrieve()` (L2 only) for context assembly.
+- No ablation variant runs MuSiQue/HotPotQA with L3 retrieval disabled vs enabled.
+- `hop_f1` breakdown by hop count exists in output but no L3-vs-no-L3 split is computed.
+
+Why this blocks publication:
+- The paper claims a 3-tier architecture where L3 (KG) provides entity-relationship reasoning.
+- If L3 never contributes measurably to multi-hop QA, the 3-tier design claim is weakened.
+- Reviewer: *"You have a knowledge graph (L3) but your multi-hop benchmark only uses L2. Does L3 actually help?"*
+
+Required fix:
+1. In `benchmark_musique.py`, add a `--no-l3` flag that skips L3 retrieval and uses L2-only context.
+2. Run MuSiQue with and without L3, breaking down F1 by hop count (2-hop, 3-hop, 4-hop).
+3. Expected result: L3 helps on 3-hop and 4-hop questions where bridging entities across passages is required.
+4. If L3 doesn't measurably help, acknowledge this honestly in Limitations — do not overclaim.
+
+Done criteria:
+- MuSiQue results include L3-enabled vs L3-disabled comparison by hop count.
+- Result is cited in the architecture section to justify the 3-tier design.
+
+---
+
 ## 4. Blocker-to-Workstream Mapping
 
 | Blocker | Execution Workstream |
@@ -285,16 +365,35 @@ Done criteria:
 | PB-08 | P1-A metric consistency |
 | PB-09 | P1-D documentation/formula reconciliation |
 | PB-10 | P1-D technical gap doc reconciliation |
+| **PB-11** | **P0-A ablation: add CA-no-gate 5th strategy** |
+| **PB-12** | **P0-A ablation: add False Forgetting Rate metric** |
+| **PB-13** | **P0-B multi-hop: add L3 vs no-L3 hop-breakdown** |
 
 ## 5. Minimum Closure Sequence (Publication-safe)
 
 Recommended closure order:
 1. PB-01 (restore non-empty execution plan artifact).
 2. PB-02 + PB-03 (fairness of primary evaluation evidence).
-3. PB-04 + PB-05 (reproducibility and variance).
-4. PB-08 (metric aggregation correctness).
-5. PB-06 + PB-07 (quality gates and regression protection).
-6. PB-09 + PB-10 (documentation and methods consistency).
+3. **PB-11** (add CA-no-gate to ablation — must happen before canonical runs).
+4. **PB-12** (add false forgetting rate logging — must happen before canonical runs).
+5. PB-04 + PB-05 (reproducibility and variance).
+6. PB-08 (metric aggregation correctness).
+7. **PB-13** (L3 hop isolation in MuSiQue — add `--no-l3` flag, run before Day 7 reruns).
+8. PB-06 + PB-07 (quality gates and regression protection).
+9. PB-09 + PB-10 (documentation and methods consistency).
+
+## 5b. Publication Defensibility Assessment (Updated Apr 15)
+
+| Claim | Test That Proves It | Status |
+|-------|---------------------|--------|
+| CSAM outperforms flat RAG on conversational memory | LoCoMo: CSAM vs matched baseline (PB-03) | Pending Day 3 |
+| Architecture dominates model size | LoCoMo: Llama-8B CSAM vs Llama-70B flat RAG | Pending Day 5 |
+| CA forgetting outperforms alternatives | Ablation: 5 strategies including CA-no-gate | **PB-11 — must fix Day 4** |
+| The gate itself is the novel driver | Ablation: CA-full vs CA-no-gate direct comparison | **PB-11 — currently untested** |
+| System retains high-value memories | False Forgetting Rate across strategies | **PB-12 — currently unmeasured** |
+| L3 contributes to multi-hop reasoning | MuSiQue F1-by-hop: L3-on vs L3-off | **PB-13 — currently undemonstrated** |
+| Results are reproducible | Multi-seed variance ± std | Pending Day 4 (PB-05) |
+| Metrics are consistent and fair | Canonical metrics.py, zero-inclusive F1 | Pending Day 4 (PB-08) |
 
 ## 6. Immediate Next Actions (48-hour window)
 
