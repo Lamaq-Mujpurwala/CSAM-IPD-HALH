@@ -375,3 +375,95 @@ If blocked, check:
 
 **Last Updated:** April 17, 2026, 12:55 PM  
 **Handoff Status:** READY FOR NEXT DEVELOPER
+---
+
+## DEDICATED N3 SECTION FOR NEXT DEVELOPER
+
+### Overview
+
+This section is **specifically for the next developer** who will complete N3 (Ablation Study).
+
+**Your job:** Run the ablation study with semantic similarity metrics.  
+**Total time:** 15 min (single seed) to 45 min (3 seeds for confidence intervals)
+
+### What N3 Does
+
+Compares 5 forgetting strategies:
+1. No-Forgetting (unbounded baseline)
+2. LRU (classic baseline)
+3. Importance (forget least important)
+4. CA-Formula-Only (formula without gate protection)
+5. Consolidation-Aware Ours (full algorithm with gate)
+
+**Expected:** CA-Ours wins on F1 and FFR; gate proves necessary.
+
+### Quick Start
+
+1. Open: `csam_project/nb3_ablation.ipynb` on Kaggle/Colab
+2. Restart kernel
+3. Run Steps 1-5 in sequence
+4. Verify: Output shows `Sem=X.XXX` in progress lines
+5. Download result JSON to `/kaggle_results/`
+
+### Detailed Steps
+
+**Step 1 - Install & Clone**
+- Pulls latest code from GitHub (commit 781f696 or later)
+- Expected: Shows commit hash with "semantic similarity"
+
+**Validation Cell** (between Step 2 & 3)
+- Tests semantic_f1 function loads
+- Expected: "SUCCESS: All semantic similarity components loaded correctly!"
+- If fails: git pull didn't work, restart kernel and retry
+
+**Step 3 - Configure**
+- Default: 5 conversations, 50 interactions per conversation, seed=42
+- You can adjust INTERACTIONS (50=15min, 100=30min) or SEED (for multi-seed)
+- Leave CONVERSATIONS=5 for consistency
+
+**Step 4 - Run Ablation**
+- Main work (15-30 min depending on INTERACTIONS)
+- Expected output per question: `[OK] Q01 F1=0.750 Sem=0.845 BLEU=0.500`
+- MUST see `Sem=` field in every line (if not: wrong code version)
+- Rate limiting is OK—auto-retries
+
+**Step 5 - Display Results**
+- Shows summary table with all 5 strategies
+- Expected: CA-Ours F1≥0.55, FFR=0.0%
+
+**Step 6 - Save**
+- Downloads result JSON to local machine
+
+### Multi-Seed Variance (Optional, +30 min)
+
+Run with seed=123 and seed=456 for error bars:
+
+In Step 3, replace CONFIG block with commented alternate config:
+- ALTERNATE CONFIG 1: Seed 123
+- ALTERNATE CONFIG 2: Seed 456
+
+Re-run Steps 4-5 for each seed. Produces 3 JSON files for paper.
+
+### What to Verify
+
+After completion:
+- [ ] Output shows `Sem=` in every progress line (not missing)
+- [ ] Results table has F1 + Semantic Sim + FFR columns
+- [ ] CA-Ours: F1≥0.55, Sem≥0.54, FFR=0.0%
+- [ ] Baselines: FFR>5% (validates gate is needed)
+- [ ] JSON file exists with avg_semantic_sim and semantic_sim_scores fields
+- [ ] File size >100KB
+
+### Common Issues
+
+| Problem | Solution |
+|---------|----------|
+| Sem= not in output | Restart kernel, re-run Step 1 (git pull) |
+| semantic_f1 not found | Verify commit 781f696, restart kernel |
+| Rate limited | Expected—auto-retries, let it run |
+| Memory error | Restart kernel, reduce INTERACTIONS to 30 |
+
+### Success = Done
+
+You're done when JSON files with semantic similarity are in `/kaggle_results/` and ready for paper writer.
+
