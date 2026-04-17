@@ -37,6 +37,7 @@ from simulation.npc import NPC, NPCPersonality
 from csam_core.services.embedding import EmbeddingService
 from csam_core.services.llm_hosted import HostedLLMService, PROVIDERS
 from benchmarks.checkpoint import BenchmarkCheckpoint
+import benchmarks.metrics as metrics_module
 
 # Load env from .env file if present
 from dotenv import load_dotenv
@@ -98,7 +99,7 @@ def run_hotpotqa_benchmark(
     provider: str,
     model: str,
     display_name: str,
-    limit_questions: int = 50,
+    limit_questions: int = 100,
     seed: int = 42,
     checkpoint_dir: str | None = None,
 ):
@@ -163,6 +164,7 @@ def run_hotpotqa_benchmark(
     print(f"\nRunning QA Evaluation ({len(data)} questions)...")
 
     f1_scores = []
+    sem_scores = []
     em_scores = []
     latencies = []
     qa_details = []
@@ -180,6 +182,7 @@ def run_hotpotqa_benchmark(
         if ckpt.is_done(q_id):
             saved = ckpt.get_result(q_id)
             f1_scores.append(saved["f1"])
+            sem_scores.append(saved.get("semantic_sim", 0.0))
             em_scores.append(saved["em"])
             latencies.append(saved["latency_ms"])
             type_f1.setdefault(saved["type"], []).append(saved["f1"])
@@ -264,7 +267,9 @@ def run_hotpotqa_benchmark(
 
         f1 = calculate_f1(prediction, truth)
         em = calculate_em(prediction, truth)
+        sem = metrics_module.semantic_f1(prediction, truth, embedding_service.encode)
         f1_scores.append(f1)
+        sem_scores.append(sem)
         em_scores.append(em)
 
         # Track by question type
@@ -279,6 +284,7 @@ def run_hotpotqa_benchmark(
             "ground_truth": truth,
             "prediction": prediction,
             "f1": f1,
+            "semantic_sim": sem,
             "em": em,
             "latency_ms": latency,
             "num_context_paragraphs": total_ingested,
@@ -289,12 +295,13 @@ def run_hotpotqa_benchmark(
         ckpt.add_result(q_id, qa_details[-1])
 
         status_icon = "[OK]" if f1 > 0.5 else "⚠️" if f1 > 0 else "[FAIL]"
-        print(f"  {status_icon} Q{i+1}/{len(data)} [{q_type}] F1={f1:.3f} EM={em:.0f} | {latency:.0f}ms")
+        print(f"  {status_icon} Q{i+1}/{len(data)} [{q_type}] F1={f1:.3f} Sem={sem:.3f} EM={em:.0f} | {latency:.0f}ms")
         print(f"       Truth: '{truth[:60]}'")
         print(f"       Pred:  '{prediction[:60]}'")
 
     # ── Results ─────────────────────────────────────────────────────────────────
     avg_f1 = float(np.mean(f1_scores)) if f1_scores else 0
+    avg_sem = float(np.mean(sem_scores)) if sem_scores else 0
     avg_em = float(np.mean(em_scores)) if em_scores else 0
     avg_latency = float(np.mean(latencies)) if latencies else 0
 
@@ -306,6 +313,7 @@ def run_hotpotqa_benchmark(
     print(f"RESULTS: CSAM + {display_name} — HotPotQA Multi-Hop QA")
     print(f"{'='*60}")
     print(f"  Average F1:      {avg_f1:.4f}")
+    print(f"  Average Sem Sim: {avg_sem:.4f}")
     print(f"  Average EM:      {avg_em:.4f}")
     print(f"  Average Latency: {avg_latency:.0f}ms")
     print(f"  Total API Calls: {usage['total_requests']}")
@@ -326,12 +334,14 @@ def run_hotpotqa_benchmark(
         "seed": seed,
         "num_questions": len(f1_scores),
         "avg_f1": avg_f1,
+        "avg_semantic_sim": avg_sem,
         "avg_em": avg_em,
         "avg_latency_ms": avg_latency,
         "type_f1": type_averages,
         "type_counts": {k: len(v) for k, v in type_f1.items()},
         "api_usage": usage,
         "f1_scores": f1_scores,
+        "semantic_sim_scores": sem_scores,
         "em_scores": em_scores,
         "qa_details": qa_details,
     }
@@ -349,7 +359,7 @@ def run_hotpotqa_benchmark(
 
 def run_all_models(
     dataset_path: str,
-    limit_questions: int = 50,
+    limit_questions: int = 100,
     seed: int = 42,
     checkpoint_dir: str | None = None,
 ) -> list:
