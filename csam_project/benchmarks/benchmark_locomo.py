@@ -166,7 +166,7 @@ def run_benchmark(dataset_path, limit_questions=None):
     
     # 3. Run QA
     print(f"\nPhase 2: Running QA Evaluation")
-    qa_pairs = conv_data['qa']
+    qa_pairs = [qa for qa in conv_data['qa'] if "answer" in qa]
     if limit_questions:
         qa_pairs = qa_pairs[:limit_questions]
         

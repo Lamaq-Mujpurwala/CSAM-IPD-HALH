@@ -207,7 +207,7 @@ def run_single_conversation(
             )
 
     # ── QA (same retrieval budget as CSAM benchmark) ─────────────────────────
-    qa_pairs = conv_data.get("qa", [])
+    qa_pairs = [qa for qa in conv_data.get("qa", []) if "answer" in qa]
     if questions_per_conv is not None:
         qa_pairs = qa_pairs[:questions_per_conv]
 
