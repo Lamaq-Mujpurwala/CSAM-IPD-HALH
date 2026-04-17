@@ -52,6 +52,7 @@ from csam_core.retrieval import HybridRetriever
 from csam_core.services.llm_hosted import HostedLLMService
 
 from evaluation.npc_locomo import BenchmarkGenerator, ConversationHistory, QAPair
+from benchmarks import metrics as metrics_module
 
 logger = logging.getLogger(__name__)
 
@@ -62,13 +63,15 @@ class EvaluationResult:
     strategy_name: str
     f1_scores: Dict[str, float]  # by question type
     overall_f1: float
-    memory_count: int
-    memory_bytes: int
-    avg_latency_ms: float
-    consolidation_ratio: float
+    avg_semantic_sim: float = 0.0
+    memory_count: int = 0
+    memory_bytes: int = 0
+    avg_latency_ms: float = 0.0
+    consolidation_ratio: float = 0.0
     # PB-12: fraction of evicted memories that lacked L3 backing (C(m) < 0.3)
     # Lower = smarter forgetting. Expected: CA≈0, others > 0.
     false_forgetting_rate: float = 0.0
+    semantic_sim_scores: List[float] = field(default_factory=list)
     qa_details: List[Dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -76,11 +79,13 @@ class EvaluationResult:
             "strategy": self.strategy_name,
             "f1_scores": self.f1_scores,
             "overall_f1": self.overall_f1,
+            "avg_semantic_sim": self.avg_semantic_sim,
             "memory_count": self.memory_count,
             "memory_bytes_mb": self.memory_bytes / 1e6,
             "avg_latency_ms": self.avg_latency_ms,
             "consolidation_ratio": self.consolidation_ratio,
             "false_forgetting_rate": self.false_forgetting_rate,
+            "semantic_sim_scores": self.semantic_sim_scores,
             "qa_details": self.qa_details,
         }
 
@@ -436,6 +441,7 @@ def evaluate_strategy(
     # Evaluate on Q&A pairs
     use_llm = llm_service is not None
     f1_by_type = {"single-hop": [], "multi-hop": [], "temporal": [], "adversarial": []}
+    sem_scores: list[float] = []
     qa_details: List[Dict[str, Any]] = []
     
     if verbose:
@@ -452,12 +458,16 @@ def evaluate_strategy(
         
         f1 = compute_f1(predicted, qa.answer)
         f1_by_type[qa.qa_type].append(f1)
-        
+
+        sem = metrics_module.semantic_f1(predicted, qa.answer, embedding_service.encode)
+        sem_scores.append(sem)
+
         detail = {
             "question": qa.question,
             "ground_truth": qa.answer,
             "predicted": predicted,
             "f1": round(f1, 4),
+            "semantic_sim": round(sem, 4),
             "type": qa.qa_type,
             "context_preview": context[:300]
         }
@@ -466,7 +476,7 @@ def evaluate_strategy(
         if verbose:
             icon = "OK" if f1 > 0.3 else "--" if f1 > 0 else "XX"
             print(f"    [{icon}] Q{i+1:02d} ({qa.qa_type[:6]:>6}) "
-                  f"F1={f1:.3f}  truth='{qa.answer[:40]}'  "
+                  f"F1={f1:.3f} Sem={sem:.3f}  truth='{qa.answer[:40]}'  "
                   f"pred='{predicted[:40]}'")
     
     # Aggregate F1 scores
@@ -476,29 +486,33 @@ def evaluate_strategy(
             f1_scores[qa_type] = np.mean(scores)
         else:
             f1_scores[qa_type] = 0.0
-    
+
     # BUG-01 fix: include zero-scoring categories in aggregate (was excluding them)
     overall_f1 = float(np.mean(list(f1_scores.values()))) if f1_scores else 0.0
+    avg_sem = float(np.mean(sem_scores)) if sem_scores else 0.0
 
     stats = system.get_statistics()
-    
+
     if verbose:
         print(f"\n  Results for {strategy_name}:")
         print(f"    Overall F1: {overall_f1:.3f}")
+        print(f"    Avg Semantic Sim: {avg_sem:.3f}")
         for qa_type, f1 in f1_scores.items():
             print(f"    {qa_type}: {f1:.3f}")
         print(f"    Memory count: {stats['memory_count']}")
         print(f"    Latency: {avg_latency:.2f}ms")
-    
+
     return EvaluationResult(
         strategy_name=strategy_name,
         f1_scores=f1_scores,
         overall_f1=overall_f1,
+        avg_semantic_sim=avg_sem,
         memory_count=stats["memory_count"],
         memory_bytes=stats["memory_bytes"],
         avg_latency_ms=avg_latency,
         consolidation_ratio=stats["consolidation_ratio"],
         false_forgetting_rate=stats["false_forgetting_rate"],
+        semantic_sim_scores=sem_scores,
         qa_details=qa_details,
     )
 
@@ -594,15 +608,15 @@ def run_ablation_study(
         results.append(result)
     
     # Print summary table
-    print("\n" + "=" * 80)
+    print("\n" + "=" * 100)
     print("ABLATION STUDY RESULTS")
-    print("=" * 80)
-    print(f"\n{'Strategy':<32} {'F1':>8} {'Memory':>8} {'Latency':>10} {'Consol.':>9} {'FFR':>8}")
-    print("-" * 80)
+    print("=" * 100)
+    print(f"\n{'Strategy':<32} {'F1':>8} {'Semantic':>10} {'Memory':>8} {'Latency':>10} {'Consol.':>9} {'FFR':>8}")
+    print("-" * 100)
 
     for r in results:
         print(
-            f"{r.strategy_name:<32} {r.overall_f1:>8.3f} {r.memory_count:>8}"
+            f"{r.strategy_name:<32} {r.overall_f1:>8.3f} {r.avg_semantic_sim:>10.3f} {r.memory_count:>8}"
             f" {r.avg_latency_ms:>8.2f}ms {r.consolidation_ratio:>8.1%}"
             f" {r.false_forgetting_rate:>7.1%}"
         )
