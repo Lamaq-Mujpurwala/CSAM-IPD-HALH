@@ -39,6 +39,7 @@ from simulation.npc import NPC, NPCPersonality
 from csam_core.services.embedding import EmbeddingService
 from csam_core.services.llm_hosted import HostedLLMService, PROVIDERS, PUBLICATION_MODELS
 from benchmarks.checkpoint import BenchmarkCheckpoint
+import benchmarks.metrics as metrics_module
 
 # Load env from .env file if present
 from dotenv import load_dotenv
@@ -208,6 +209,7 @@ def run_single_conversation(
         qa_pairs = qa_pairs[:questions_per_conv]
 
     f1_scores: list[float] = []
+    sem_scores: list[float] = []
     bleu1_scores: list[float] = []
     latencies: list[float] = []
     qa_details: list[dict] = []
@@ -233,8 +235,10 @@ def run_single_conversation(
         latency = (time.time() - t0) * 1000
         f1 = calculate_f1(prediction, truth)
         bleu1 = calculate_bleu1(prediction, truth)
+        sem = metrics_module.semantic_f1(prediction, truth, embedding_service.encode)
 
         f1_scores.append(f1)
+        sem_scores.append(sem)
         bleu1_scores.append(bleu1)
         latencies.append(latency)
 
@@ -243,7 +247,7 @@ def run_single_conversation(
 
         status = "[OK]" if f1 > 0.3 else "~" if f1 > 0 else "[FAIL]"
         print(
-            f"    {status} Q{i+1} F1={f1:.3f} BLEU={bleu1:.3f} | {latency:.0f}ms"
+            f"    {status} Q{i+1} F1={f1:.3f} Sem={sem:.3f} BLEU={bleu1:.3f} | {latency:.0f}ms"
             f"\n         Truth: '{truth[:60]}'"
             f"\n         Pred:  '{prediction[:60]}'"
             f"\n         Top:   '{top_ctx}' (sim={top_sim})"
@@ -254,12 +258,14 @@ def run_single_conversation(
             "ground_truth": truth,
             "prediction": prediction,
             "f1": f1,
+            "semantic_sim": sem,
             "bleu1": bleu1,
             "latency_ms": latency,
             "context_preview": context[:300],
         })
 
     avg_f1 = float(np.mean(f1_scores)) if f1_scores else 0.0
+    avg_sem = float(np.mean(sem_scores)) if sem_scores else 0.0
     ci_lo, ci_hi = bootstrap_ci(f1_scores)
 
     return {
@@ -269,10 +275,12 @@ def run_single_conversation(
         "l3_nodes": len(npc.knowledge_graph),
         "num_questions": len(f1_scores),
         "avg_f1": avg_f1,
+        "avg_semantic_sim": avg_sem,
         "avg_bleu1": float(np.mean(bleu1_scores)) if bleu1_scores else 0.0,
         "avg_latency_ms": float(np.mean(latencies)) if latencies else 0.0,
         "f1_ci_95": [ci_lo, ci_hi],
         "f1_scores": f1_scores,
+        "semantic_sim_scores": sem_scores,
         "bleu1_scores": bleu1_scores,
         "qa_details": qa_details,
     }

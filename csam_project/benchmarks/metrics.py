@@ -4,7 +4,9 @@ Canonical evaluation metrics for CSAM benchmarks.
 Shared by all benchmark scripts to guarantee consistent F1/EM computation
 across datasets (HotPotQA, MuSiQue, LoCoMo).
 
-All functions are deterministic and dependency-free (stdlib + stdlib re/Counter).
+Token-level metrics (F1, EM, BLEU-1) are stdlib-only and deterministic.
+Semantic similarity requires numpy and is available when embeddings are
+pre-computed externally (e.g., using the shared EmbeddingService).
 """
 
 from __future__ import annotations
@@ -12,6 +14,8 @@ from __future__ import annotations
 import re
 from collections import Counter
 from typing import Iterable
+
+import numpy as np
 
 
 # ── Text normalisation ────────────────────────────────────────────────────────
@@ -150,6 +154,58 @@ def bleu1(prediction: str, ground_truth: str) -> float:
             truth_counter[tok] -= 1
 
     return clipped / len(pred_tokens)
+
+
+# ── Semantic similarity ───────────────────────────────────────────────────────
+
+def cosine_sim(vec_a: np.ndarray, vec_b: np.ndarray) -> float:
+    """
+    Cosine similarity between two embedding vectors.
+
+    Use this as a semantic alternative to token F1 when both prediction
+    and reference have been encoded by the same embedding model.  A score
+    of 1.0 means identical meaning; ~0.9 is typical for paraphrases;
+    scores below ~0.6 indicate unrelated text.
+
+    Args:
+        vec_a: Embedding of prediction (any 1-D float array).
+        vec_b: Embedding of reference  (any 1-D float array).
+
+    Returns:
+        Cosine similarity in [-1.0, 1.0], clamped to [0.0, 1.0] for
+        scoring purposes (negative similarity is treated as zero relevance).
+    """
+    norm_a = np.linalg.norm(vec_a)
+    norm_b = np.linalg.norm(vec_b)
+    if norm_a == 0.0 or norm_b == 0.0:
+        return 0.0
+    return float(max(0.0, np.dot(vec_a, vec_b) / (norm_a * norm_b)))
+
+
+def semantic_f1(
+    prediction: str,
+    ground_truth: str,
+    encode_fn: "Callable[[str], np.ndarray]",  # noqa: F821
+) -> float:
+    """
+    Semantic similarity score using embedding cosine distance.
+
+    This is a drop-in companion to token_f1().  Pass the same encode_fn
+    (e.g., EmbeddingService.encode) used everywhere else in the benchmark.
+
+    Unlike token F1, this metric correctly handles paraphrases:
+        "enjoys cooking" vs "cooking"  →  ~0.92 (near-correct)
+        "No information available"     →  ~0.35 (clearly wrong)
+
+    Args:
+        prediction:  Model's answer text.
+        ground_truth: Reference answer text.
+        encode_fn:   Callable mapping a string to a 1-D numpy embedding.
+
+    Returns:
+        Cosine similarity in [0.0, 1.0].
+    """
+    return cosine_sim(encode_fn(prediction), encode_fn(ground_truth))
 
 
 # ── Aggregate helpers ─────────────────────────────────────────────────────────
