@@ -37,6 +37,7 @@ from simulation.npc import NPC, NPCPersonality
 from csam_core.services.embedding import EmbeddingService
 from csam_core.services.llm_hosted import HostedLLMService, PROVIDERS
 from benchmarks.checkpoint import BenchmarkCheckpoint
+import benchmarks.metrics as metrics_module
 
 # Load env from .env file if present
 from dotenv import load_dotenv
@@ -100,6 +101,7 @@ ALL_MODELS = [
     ("groq", "llama-3.1-8b-instant", "Llama 3.1 8B", "8B"),
     ("groq", "meta-llama/llama-4-scout-17b-16e-instruct", "Llama 4 Scout 17B", "17B"),
     ("groq", "llama-3.3-70b-versatile", "Llama 3.3 70B", "70B"),
+    ("groq", "openai/gpt-oss-120b", "GPT-OSS 120B", "120B"),
 ]
 
 
@@ -114,6 +116,7 @@ def run_musique_benchmark(
     seed: int = 42,
     checkpoint_dir: str | None = None,
     no_l3: bool = False,
+    output_dir: str | None = None,
 ):
     """
     Run MuSiQue multi-hop QA benchmark with a specific hosted model.
@@ -184,6 +187,7 @@ def run_musique_benchmark(
     print(f"\nRunning QA Evaluation ({len(entries)} questions)...")
 
     f1_scores = []
+    sem_scores: list[float] = []
     em_scores = []
     latencies = []
     qa_details = []
@@ -203,11 +207,12 @@ def run_musique_benchmark(
         if ckpt.is_done(entry_id):
             saved = ckpt.get_result(entry_id)
             f1_scores.append(saved["f1"])
+            sem_scores.append(saved.get("semantic_sim", 0.0))
             em_scores.append(saved["em"])
             latencies.append(saved["latency_ms"])
             hop_f1.setdefault(saved["hop"], []).append(saved["f1"])
             qa_details.append(saved)
-            print(f"  [SKIP] Q{i+1}/{len(entries)} [{hop_key}] F1={saved['f1']:.3f} (checkpoint)")
+            print(f"  [SKIP] Q{i+1}/{len(entries)} [{hop_key}] F1={saved['f1']:.3f} Sem={saved.get('semantic_sim', 0.0):.3f} (checkpoint)")
             continue
 
         t0 = time.time()
@@ -268,7 +273,9 @@ def run_musique_benchmark(
 
         f1 = calculate_f1_with_aliases(prediction, truth, aliases)
         em = calculate_em_with_aliases(prediction, truth, aliases)
+        sem = metrics_module.semantic_f1(prediction, truth, embedding_service.encode)
         f1_scores.append(f1)
+        sem_scores.append(sem)
         em_scores.append(em)
 
         # Track by hop count
@@ -284,6 +291,7 @@ def run_musique_benchmark(
             "aliases": aliases,
             "prediction": prediction,
             "f1": f1,
+            "semantic_sim": sem,
             "em": em,
             "latency_ms": latency,
             "num_paragraphs": len(paragraphs),
@@ -294,13 +302,14 @@ def run_musique_benchmark(
         # Save to checkpoint immediately
         ckpt.add_result(entry_id, qa_details[-1])
 
-        status_icon = "[OK]" if f1 > 0.5 else "⚠️" if f1 > 0 else "[FAIL]"
-        print(f"  {status_icon} Q{i+1}/{len(entries)} [{hop_key}] F1={f1:.3f} EM={em:.0f} | {latency:.0f}ms")
+        status_icon = "[OK]" if f1 > 0.5 else "[~]" if f1 > 0 else "[FAIL]"
+        print(f"  {status_icon} Q{i+1}/{len(entries)} [{hop_key}] F1={f1:.3f} Sem={sem:.3f} EM={em:.0f} | {latency:.0f}ms")
         print(f"       Truth: '{truth[:60]}'")
         print(f"       Pred:  '{prediction[:60]}'")
 
     # ── Results ─────────────────────────────────────────────────────────────────
     avg_f1 = float(np.mean(f1_scores)) if f1_scores else 0
+    avg_sem = float(np.mean(sem_scores)) if sem_scores else 0
     avg_em = float(np.mean(em_scores)) if em_scores else 0
     avg_latency = float(np.mean(latencies)) if latencies else 0
 
@@ -312,6 +321,7 @@ def run_musique_benchmark(
     print(f"RESULTS: CSAM + {display_name} — MuSiQue Multi-Hop QA")
     print(f"{'='*60}")
     print(f"  Average F1:      {avg_f1:.4f}")
+    print(f"  Average Sem Sim: {avg_sem:.4f}")
     print(f"  Average EM:      {avg_em:.4f}")
     print(f"  Average Latency: {avg_latency:.0f}ms")
     print(f"  Total API Calls: {usage['total_requests']}")
@@ -333,12 +343,14 @@ def run_musique_benchmark(
         "no_l3": no_l3,
         "num_questions": len(f1_scores),
         "avg_f1": avg_f1,
+        "avg_semantic_sim": avg_sem,
         "avg_em": avg_em,
         "avg_latency_ms": avg_latency,
         "hop_f1": hop_averages,
         "hop_counts": {k: len(v) for k, v in hop_f1.items()},
         "api_usage": usage,
         "f1_scores": f1_scores,
+        "semantic_sim_scores": sem_scores,
         "em_scores": em_scores,
         "qa_details": qa_details,
     }
@@ -346,7 +358,9 @@ def run_musique_benchmark(
     # Save results
     safe_model_name = model.replace("/", "_").replace(":", "_")
     l3_suffix = "_nol3" if no_l3 else ""
-    output_file = os.path.join(project_root, "benchmarks", f"results_musique_{provider}_{safe_model_name}_s{seed}{l3_suffix}.json")
+    save_dir = output_dir if output_dir else os.path.join(project_root, "benchmarks")
+    os.makedirs(save_dir, exist_ok=True)
+    output_file = os.path.join(save_dir, f"results_musique_{provider}_{safe_model_name}_s{seed}_n{len(f1_scores)}{l3_suffix}.json")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
     print(f"\nResults saved to: {output_file}")
@@ -361,6 +375,7 @@ def run_all_models(
     seed: int = 42,
     checkpoint_dir: str | None = None,
     no_l3: bool = False,
+    output_dir: str | None = None,
 ) -> list:
     """Run MuSiQue benchmark across all configured models."""
     all_results = []
@@ -381,6 +396,7 @@ def run_all_models(
                 seed=seed,
                 checkpoint_dir=checkpoint_dir,
                 no_l3=no_l3,
+                output_dir=output_dir,
             )
             if result:
                 all_results.append(result)
@@ -404,7 +420,8 @@ def run_all_models(
         print("=" * 80)
 
         # Save combined summary
-        summary_path = os.path.join(project_root, "benchmarks", "results_musique_summary.json")
+        save_dir = output_dir if output_dir else os.path.join(project_root, "benchmarks")
+        summary_path = os.path.join(save_dir, "results_musique_summary.json")
         summary = {
             "timestamp": datetime.now().isoformat(),
             "benchmark": "musique_multimodel",
@@ -450,6 +467,8 @@ def main():
                         help="Directory for checkpoint files (default: benchmarks/ dir)")
     parser.add_argument("--no-l3", action="store_true",
                         help="Disable L3 KG retrieval (PB-13: L3 isolation experiment)")
+    parser.add_argument("--output-dir", type=str, default=None,
+                        help="Directory for result JSON files (default: benchmarks/ dir)")
 
     args = parser.parse_args()
     random.seed(args.seed)
@@ -471,6 +490,7 @@ def main():
             seed=args.seed,
             checkpoint_dir=args.checkpoint_dir,
             no_l3=args.no_l3,
+            output_dir=args.output_dir,
         )
     else:
         model = args.model or "llama-3.1-8b-instant"
@@ -484,6 +504,7 @@ def main():
             seed=args.seed,
             checkpoint_dir=args.checkpoint_dir,
             no_l3=args.no_l3,
+            output_dir=args.output_dir,
         )
 
     return 0

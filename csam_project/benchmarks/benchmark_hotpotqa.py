@@ -89,6 +89,7 @@ ALL_MODELS = [
     ("groq", "llama-3.1-8b-instant", "Llama 3.1 8B", "8B"),
     ("groq", "meta-llama/llama-4-scout-17b-16e-instruct", "Llama 4 Scout 17B", "17B"),
     ("groq", "llama-3.3-70b-versatile", "Llama 3.3 70B", "70B"),
+    ("groq", "openai/gpt-oss-120b", "GPT-OSS 120B", "120B"),
 ]
 
 
@@ -102,6 +103,7 @@ def run_hotpotqa_benchmark(
     limit_questions: int = 100,
     seed: int = 42,
     checkpoint_dir: str | None = None,
+    output_dir: str | None = None,
 ):
     """
     Run HotPotQA multi-hop QA benchmark with a specific hosted model.
@@ -348,7 +350,9 @@ def run_hotpotqa_benchmark(
 
     # Save results
     safe_model_name = model.replace("/", "_").replace(":", "_")
-    output_file = os.path.join(project_root, "benchmarks", f"results_hotpotqa_{provider}_{safe_model_name}_s{seed}.json")
+    save_dir = output_dir if output_dir else os.path.join(project_root, "benchmarks")
+    os.makedirs(save_dir, exist_ok=True)
+    output_file = os.path.join(save_dir, f"results_hotpotqa_{provider}_{safe_model_name}_s{seed}_n{len(f1_scores)}.json")
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
     print(f"\nResults saved to: {output_file}")
@@ -362,6 +366,7 @@ def run_all_models(
     limit_questions: int = 100,
     seed: int = 42,
     checkpoint_dir: str | None = None,
+    output_dir: str | None = None,
 ) -> list:
     """Run HotPotQA benchmark across all configured models."""
     all_results = []
@@ -381,6 +386,7 @@ def run_all_models(
                 limit_questions=limit_questions,
                 seed=seed,
                 checkpoint_dir=checkpoint_dir,
+                output_dir=output_dir,
             )
             if result:
                 all_results.append(result)
@@ -404,7 +410,9 @@ def run_all_models(
         print("=" * 80)
 
         # Save combined summary
-        summary_path = os.path.join(project_root, "benchmarks", "results_hotpotqa_summary.json")
+        save_dir = output_dir if output_dir else os.path.join(project_root, "benchmarks")
+        os.makedirs(save_dir, exist_ok=True)
+        summary_path = os.path.join(save_dir, "results_hotpotqa_summary.json")
         summary = {
             "timestamp": datetime.now().isoformat(),
             "benchmark": "hotpotqa_multimodel",
@@ -448,6 +456,8 @@ def main():
                         help="Random seed for reproducible question sampling (default: 42)")
     parser.add_argument("--checkpoint-dir", type=str, default=None,
                         help="Directory for checkpoint files (default: benchmarks/ dir)")
+    parser.add_argument("--output-dir", type=str, default=None,
+                        help="Directory for result JSON files (default: benchmarks/ dir)")
 
     args = parser.parse_args()
     random.seed(args.seed)
@@ -468,6 +478,7 @@ def main():
             limit_questions=args.questions,
             seed=args.seed,
             checkpoint_dir=args.checkpoint_dir,
+            output_dir=args.output_dir,
         )
     else:
         model = args.model or "llama-3.1-8b-instant"
@@ -480,6 +491,7 @@ def main():
             limit_questions=args.questions,
             seed=args.seed,
             checkpoint_dir=args.checkpoint_dir,
+            output_dir=args.output_dir,
         )
 
     return 0

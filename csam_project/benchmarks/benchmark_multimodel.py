@@ -87,14 +87,8 @@ def calculate_bleu1(prediction: str, ground_truth: str) -> float:
     truth_tokens = normalize_text(ground_truth).split()
     if not pred_tokens or not truth_tokens:
         return 0.0
-    truth_counter = Counter(truth_tokens)
-    clipped = sum(
-        1 for t in pred_tokens
-        if truth_counter[t] > 0 and not truth_counter.__setitem__(t, truth_counter[t] - 1)  # noqa: WPS220
-    )
-    # simpler version without the side-effect trick above:
-    clipped = 0
     tc = Counter(truth_tokens)
+    clipped = 0
     for t in pred_tokens:
         if tc[t] > 0:
             clipped += 1
@@ -298,6 +292,7 @@ def run_multi_conversation_benchmark(
     seed: int = 42,
     checkpoint_dir: str | None = None,
     skip_consolidation: bool = True,
+    output_dir: str | None = None,
 ) -> dict | None:
     """Run LoCoMo benchmark over multiple conversations, with checkpointing."""
     print(f"\n{'='*70}")
@@ -412,6 +407,7 @@ def run_multi_conversation_benchmark(
         "macro_f1": macro_f1,
         "micro_f1": micro_f1,
         "f1_ci_95": [ci_lo, ci_hi],
+        "avg_semantic_sim": float(np.mean([r["avg_semantic_sim"] for r in conv_results])),
         "avg_bleu1": float(np.mean([r["avg_bleu1"] for r in conv_results])),
         "avg_latency_ms": float(np.mean([r["avg_latency_ms"] for r in conv_results])),
         "api_usage": usage,
@@ -420,9 +416,11 @@ def run_multi_conversation_benchmark(
     }
 
     safe_model = model.replace("/", "_").replace(":", "_")
+    save_dir = output_dir if output_dir else os.path.join(project_root, "benchmarks")
+    os.makedirs(save_dir, exist_ok=True)
     out_path = os.path.join(
-        project_root, "benchmarks",
-        f"results_locomo_{provider}_{safe_model}_s{seed}.json",
+        save_dir,
+        f"results_locomo_csam_{provider}_{safe_model}_s{seed}.json",
     )
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
@@ -440,6 +438,7 @@ def run_all_models(
     questions_per_conv: int | None = None,
     seed: int = 42,
     checkpoint_dir: str | None = None,
+    output_dir: str | None = None,
 ) -> list:
     """Run LoCoMo benchmark across all PUBLICATION_MODELS."""
     all_results = []
@@ -460,6 +459,7 @@ def run_all_models(
                 questions_per_conv=questions_per_conv,
                 seed=seed,
                 checkpoint_dir=checkpoint_dir,
+                output_dir=output_dir,
             )
             if result:
                 all_results.append(result)
@@ -483,7 +483,9 @@ def run_all_models(
             )
         print("=" * 80)
 
-        summary_path = os.path.join(project_root, "benchmarks", f"results_locomo_summary_s{seed}.json")
+        save_dir = output_dir if output_dir else os.path.join(project_root, "benchmarks")
+        os.makedirs(save_dir, exist_ok=True)
+        summary_path = os.path.join(save_dir, f"results_locomo_csam_summary_s{seed}.json")
         summary = {
             "timestamp": datetime.now().isoformat(),
             "benchmark": "locomo_multimodel",
@@ -496,6 +498,7 @@ def run_all_models(
                     "model_id": r["model"],
                     "macro_f1": r["macro_f1"],
                     "micro_f1": r["micro_f1"],
+                    "avg_semantic_sim": r.get("avg_semantic_sim", 0.0),
                     "f1_ci_95": r.get("f1_ci_95"),
                     "latency_ms": r["avg_latency_ms"],
                     "total_tokens": r["api_usage"]["total_tokens"],
@@ -534,6 +537,8 @@ def main() -> int:
                         help="Enable L3 consolidation phase (slower)")
     parser.add_argument("--checkpoint-dir", type=str, default=None,
                         help="Directory for checkpoint files")
+    parser.add_argument("--output-dir", type=str, default=None,
+                        help="Directory for result JSON files (default: benchmarks/ dir)")
 
     args = parser.parse_args()
     random.seed(args.seed)
@@ -554,6 +559,7 @@ def main() -> int:
             questions_per_conv=args.questions_per_conv,
             seed=args.seed,
             checkpoint_dir=args.checkpoint_dir,
+            output_dir=args.output_dir,
         )
     else:
         display_name = args.model.split("/")[-1] if "/" in args.model else args.model
@@ -567,6 +573,7 @@ def main() -> int:
             seed=args.seed,
             checkpoint_dir=args.checkpoint_dir,
             skip_consolidation=not args.consolidate,
+            output_dir=args.output_dir,
         )
 
     return 0

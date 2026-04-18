@@ -140,13 +140,6 @@ PUBLICATION_MODELS = [
     },
     {
         "provider": "groq",
-        "model":    "gemma2-9b-it",
-        "label":    "Gemma-2-9B",
-        "size_b":   9,
-        "family":   "gemma",    # cross-architecture check at ~8-9B
-    },
-    {
-        "provider": "groq",
         "model":    "meta-llama/llama-4-scout-17b-16e-instruct",
         "label":    "Llama-4-Scout-17B",
         "size_b":   17,
@@ -158,6 +151,13 @@ PUBLICATION_MODELS = [
         "label":    "Llama-3.3-70B",
         "size_b":   70,
         "family":   "llama",
+    },
+    {
+        "provider": "groq",
+        "model":    "openai/gpt-oss-120b",
+        "label":    "GPT-OSS-120B",
+        "size_b":   120,
+        "family":   "openai",
     },
 ]
 

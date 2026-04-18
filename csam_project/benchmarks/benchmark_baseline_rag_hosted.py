@@ -293,6 +293,7 @@ def run_baseline_benchmark(
     questions_per_conv: int | None = None,
     seed: int = 42,
     checkpoint_dir: str | None = None,
+    output_dir: str | None = None,
 ) -> dict | None:
     """Run flat-RAG baseline over multiple LoCoMo conversations."""
     print(f"\n{'='*70}")
@@ -405,6 +406,7 @@ def run_baseline_benchmark(
         "micro_f1": micro_f1,
         "f1_ci_95": [ci_lo, ci_hi],
         "avg_bleu1": float(np.mean([r["avg_bleu1"] for r in conv_results])),
+        "avg_semantic_sim": float(np.mean([r["avg_semantic_sim"] for r in conv_results])),
         "avg_latency_ms": float(np.mean([r["avg_latency_ms"] for r in conv_results])),
         "api_usage": usage,
         "protocol": protocol,
@@ -412,10 +414,9 @@ def run_baseline_benchmark(
     }
 
     safe_model = model.replace("/", "_").replace(":", "_")
-    out_path = os.path.join(
-        project_root, "benchmarks",
-        f"results_baseline_{provider}_{safe_model}_s{seed}.json",
-    )
+    save_dir = output_dir if output_dir else os.path.join(project_root, "benchmarks")
+    os.makedirs(save_dir, exist_ok=True)
+    out_path = os.path.join(save_dir, f"results_locomo_baseline_{provider}_{safe_model}_s{seed}.json")
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
     print(f"\nResults saved: {out_path}")
@@ -432,6 +433,7 @@ def run_all_models(
     questions_per_conv: int | None = None,
     seed: int = 42,
     checkpoint_dir: str | None = None,
+    output_dir: str | None = None,
 ) -> list:
     all_results = []
     print("\n" + "=" * 70)
@@ -450,6 +452,7 @@ def run_all_models(
                 questions_per_conv=questions_per_conv,
                 seed=seed,
                 checkpoint_dir=checkpoint_dir,
+                output_dir=output_dir,
             )
             if result:
                 all_results.append(result)
@@ -484,6 +487,8 @@ def main() -> int:
     parser.add_argument("--questions-per-conv", type=int, default=None)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--checkpoint-dir", type=str, default=None)
+    parser.add_argument("--output-dir", type=str, default=None,
+                        help="Directory to save results (default: benchmarks/)")
 
     args = parser.parse_args()
     random.seed(args.seed)
@@ -503,6 +508,7 @@ def main() -> int:
             questions_per_conv=args.questions_per_conv,
             seed=args.seed,
             checkpoint_dir=args.checkpoint_dir,
+            output_dir=args.output_dir,
         )
     else:
         display_name = args.model.split("/")[-1] if "/" in args.model else args.model
@@ -515,6 +521,7 @@ def main() -> int:
             questions_per_conv=args.questions_per_conv,
             seed=args.seed,
             checkpoint_dir=args.checkpoint_dir,
+            output_dir=args.output_dir,
         )
 
     return 0
