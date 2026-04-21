@@ -1,0 +1,31 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#fee2e2', 'fontFamily': 'serif', 'fontSize': '13px'}}}%%
+flowchart TD
+    START(["Start: |L2| > θ_cap (200)"])
+    SCORE["Compute F(m) for all m ∈ L2\nF(m) = 0.25·R + 0.25·(1-I) + 0.25·C + 0.25·D"]
+    FILTER{"Eligible set:\nE = {m : C(m) ≥ θ_c (0.3)}"}
+    EMPTY{"E = ∅ ?"}
+    HALT(["HALT — no safe evictions\nAll memories unconsolidated"])
+    PICK["m* = argmax F(m) over E\n(highest forgetting score)"]
+    EVICT["Evict m* from L2\nRemove from Consolidation Tracker"]
+    CHECK{"|L2| > θ_cap ?"}
+    DONE(["Done — memory within cap"])
+
+    START --> SCORE
+    SCORE --> FILTER
+    FILTER --> EMPTY
+    EMPTY -- "Yes" --> HALT
+    EMPTY -- "No" --> PICK
+    PICK --> EVICT
+    EVICT --> CHECK
+    CHECK -- "Yes, still over cap" --> SCORE
+    CHECK -- "No" --> DONE
+
+    style START fill:#dbeafe,stroke:#3b82f6
+    style HALT fill:#fef9c3,stroke:#ca8a04,color:#7c2d12
+    style DONE fill:#d1fae5,stroke:#10b981
+    style EVICT fill:#fee2e2,stroke:#dc2626
+    style PICK fill:#f3e8ff,stroke:#9333ea
+    style SCORE fill:#f1f5f9,stroke:#475569
+    style FILTER fill:#f1f5f9,stroke:#475569
+    style EMPTY fill:#fff7ed,stroke:#f97316
+    style CHECK fill:#fff7ed,stroke:#f97316

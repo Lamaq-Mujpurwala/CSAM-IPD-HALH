@@ -1,0 +1,62 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#dbeafe', 'edgeLabelBackground': '#ffffff', 'fontFamily': 'serif'}}}%%
+flowchart TD
+    USER["👤 User Query"]
+
+    subgraph CSAM ["CSAM — Cognitive Sparse Access Memory"]
+        direction TB
+
+        subgraph L1 ["L1 · Working Memory"]
+            WM["LRU Cache\n20 items · &lt;1 ms\nActive context buffer"]
+        end
+
+        subgraph L2 ["L2 · Episodic Memory"]
+            HNSW["HNSW Vector Index\n384-dim embeddings\nO(log N) retrieval\nCap: 200 entries"]
+        end
+
+        subgraph L3 ["L3 · Semantic Memory"]
+            KG["Knowledge Graph\nNetworkX\nEntities + Relations\nUnbounded"]
+        end
+
+        CT["📋 Consolidation\nTracker\nC(m) ∈ [0,1]"]
+        FE["⚡ Forgetting Engine\nCA-Ours\nFFR = 0.000"]
+        CP["🔄 Consolidation\nPipeline\nLLM entity extraction"]
+    end
+
+    CONTEXT["📄 LLM Context\nAssembly\n(top-10 memories)"]
+    LLM["🤖 LLM\n(Groq API)\n8B–120B"]
+    ANSWER["✅ Answer"]
+
+    %% Query flow
+    USER -->|"embed query"| WM
+    WM -->|"k=20 HNSW search"| HNSW
+    HNSW -->|"graph traversal"| KG
+    KG --> CONTEXT
+    HNSW --> CONTEXT
+    WM --> CONTEXT
+    CONTEXT --> LLM
+    LLM --> ANSWER
+
+    %% Memory storage
+    USER -->|"store memory"| HNSW
+
+    %% Consolidation loop
+    HNSW -->|"batch memories"| CP
+    CP -->|"extract entities\nupdate graph"| KG
+    CP -->|"update C(m)"| CT
+    CT -->|"coverage score"| FE
+
+    %% Forgetting
+    FE -->|"evict if C(m) ≥ 0.3"| HNSW
+
+    %% Styling
+    classDef l1style fill:#dbeafe,stroke:#3b82f6,color:#1e3a8a
+    classDef l2style fill:#fed7aa,stroke:#f97316,color:#7c2d12
+    classDef l3style fill:#d1fae5,stroke:#10b981,color:#064e3b
+    classDef helper fill:#f3e8ff,stroke:#9333ea,color:#4a044e
+    classDef io fill:#f1f5f9,stroke:#64748b,color:#1e293b
+
+    class WM l1style
+    class HNSW l2style
+    class KG l3style
+    class CT,FE,CP helper
+    class USER,CONTEXT,LLM,ANSWER io
