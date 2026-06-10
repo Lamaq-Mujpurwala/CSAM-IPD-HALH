@@ -45,7 +45,7 @@ import benchmarks.metrics as metrics_module
 from dotenv import load_dotenv
 env_path = os.path.join(os.path.dirname(project_root), ".env")
 if os.path.exists(env_path):
-    load_dotenv(env_path)
+    load_dotenv(env_path, override=True)
 
 logging.basicConfig(
     level=logging.INFO,

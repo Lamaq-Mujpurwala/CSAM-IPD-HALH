@@ -19,9 +19,44 @@ import logging
 import time
 import os
 import re
+from dataclasses import dataclass, field
 from typing import Optional, Dict, Any, List
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Per-model free-tier rate limits (Groq, 2026)
+# Source: https://console.groq.com/docs/rate-limits
+# ---------------------------------------------------------------------------
+MODEL_RATE_LIMITS: Dict[str, Dict[str, int]] = {
+    # model_id -> {rpm, tpm, rpd, tpd}
+    "llama-3.1-8b-instant":                           {"rpm": 30, "tpm": 30_000, "rpd": 14_400, "tpd": 500_000},
+    "llama-3.3-70b-versatile":                        {"rpm": 30, "tpm": 12_000, "rpd": 1_000,  "tpd": 100_000},
+    "openai/gpt-oss-120b":                            {"rpm": 30, "tpm": 8_000,  "rpd": 1_000,  "tpd": 200_000},
+    "meta-llama/llama-4-scout-17b-16e-instruct":      {"rpm": 30, "tpm": 6_000,  "rpd": 1_000,  "tpd": 100_000},
+    "qwen/qwen3-32b":                                 {"rpm": 30, "tpm": 6_000,  "rpd": 1_000,  "tpd": 100_000},
+}
+_DEFAULT_LIMITS: Dict[str, int] = {"rpm": 30, "tpm": 6_000, "rpd": 1_000, "tpd": 100_000}
+
+# Fraction of a limit at which we proactively rotate to the next key
+_TPM_ROTATION_THRESHOLD = 0.85   # rotate when 85% of TPM consumed
+_RPM_ROTATION_THRESHOLD = 0.85
+
+
+@dataclass
+class _KeySlot:
+    """Per-key rate-limit state tracking."""
+    key: str
+    # Rolling 60-second window counters
+    window_start: float = field(default_factory=time.time)
+    rpm_used: int = 0
+    tpm_used: int = 0
+    # Rolling 24-hour window counters
+    day_start: float = field(default_factory=time.time)
+    rpd_used: int = 0
+    tpd_used: int = 0
+    # Backoff — epoch timestamp until which this key is unavailable
+    cooldown_until: float = 0.0
 
 # ---------------------------------------------------------------------------
 # Provider registry — all OpenAI-compatible chat/completions endpoints
@@ -194,8 +229,8 @@ class HostedLLMService:
         llm = HostedLLMService(provider="fireworks",model="accounts/fireworks/models/llama-v3p3-70b-instruct")
     """
 
-    MAX_RETRIES: int = 5      # maximum 429-retry attempts before raising
-    DEFAULT_BACKOFF: int = 30  # fallback sleep seconds when Retry-After header is absent
+    MAX_RETRIES: int = 8      # maximum 429-retry attempts before raising
+    DEFAULT_BACKOFF: int = 60  # fallback sleep seconds when Retry-After header is absent
 
     def __init__(
         self,
@@ -219,45 +254,52 @@ class HostedLLMService:
         self.timeout = timeout
         self.max_retries = max_retries
 
-        # Rate limiting
-        self.rate_limit_rpm = rate_limit_rpm or self.provider_config["rate_limit_rpm"]
-        self.min_interval = 60.0 / self.rate_limit_rpm
-        self._last_request_time: float = 0.0
+        # Per-model rate limits (fall back to provider default)
+        self._limits = MODEL_RATE_LIMITS.get(model, _DEFAULT_LIMITS).copy()
+        if rate_limit_rpm:
+            self._limits["rpm"] = rate_limit_rpm
 
-        # API key rotation (supports GROQ_API_KEY, GROQ_API_KEY_2, …)
-        self._api_keys: List[str] = []
-        self._key_index: int = 0
+        # Build key slots — supports GROQ_API_KEY, GROQ_API_KEY_2 … GROQ_API_KEY_19
+        raw_keys: List[str] = []
         if api_key:
-            self._api_keys = [api_key]
+            raw_keys = [api_key]
         else:
             env_key = self.provider_config["env_key"]
             base = os.environ.get(env_key, "")
             if base:
-                self._api_keys.append(base)
+                raw_keys.append(base)
             for suffix in range(2, 20):
                 extra = os.environ.get(f"{env_key}_{suffix}", "")
                 if extra:
-                    self._api_keys.append(extra)
-            if not self._api_keys:
-                logger.warning(
-                    "No API key found for '%s'. Set $%s environment variable.",
-                    provider, env_key,
-                )
-            else:
-                logger.info(
-                    "Loaded %d API key(s) for provider '%s'.",
-                    len(self._api_keys), provider,
-                )
+                    raw_keys.append(extra)
 
-        self.api_key: str = self._api_keys[0] if self._api_keys else ""
+        if not raw_keys:
+            logger.warning(
+                "No API key found for '%s'. Set $%s environment variable.",
+                provider, env_key if not api_key else "api_key",
+            )
+        else:
+            logger.info(
+                "Loaded %d API key(s) for provider '%s' (model=%s).",
+                len(raw_keys), provider, model,
+            )
 
-        # Usage counters
+        self._slots: List[_KeySlot] = [_KeySlot(key=k) for k in raw_keys]
+        self._slot_index: int = 0
+
+        # Convenience alias kept for back-compat (points at active slot's key)
+        self.api_key: str = raw_keys[0] if raw_keys else ""
+
+        # Usage counters (aggregate across all keys)
         self.total_requests: int = 0
         self.total_tokens_in: int = 0
         self.total_tokens_out: int = 0
         self.total_latency_ms: float = 0.0
 
-        logger.info("HostedLLMService ready: provider=%s  model=%s", provider, model)
+        logger.info(
+            "HostedLLMService ready: provider=%s  model=%s  keys=%d  limits=%s",
+            provider, model, len(self._slots), self._limits,
+        )
 
     # ------------------------------------------------------------------
     # Private helpers
@@ -273,30 +315,106 @@ class HostedLLMService:
             stripped = re.sub(r"<think>.*", "", stripped, flags=re.DOTALL).strip()
         return stripped if stripped else text
 
-    def _rate_limit_wait(self) -> None:
-        """Sleep until the minimum inter-request interval has elapsed."""
+    def _refresh_slot(self, slot: "_KeySlot") -> None:
+        """Reset per-minute and per-day counters if their windows have expired."""
         now = time.time()
-        elapsed = now - self._last_request_time
-        if elapsed < self.min_interval:
-            time.sleep(self.min_interval - elapsed)
-        self._last_request_time = time.time()
+        if now - slot.window_start >= 60.0:
+            slot.window_start = now
+            slot.rpm_used = 0
+            slot.tpm_used = 0
+        if now - slot.day_start >= 86_400.0:
+            slot.day_start = now
+            slot.rpd_used = 0
+            slot.tpd_used = 0
 
-    def _rotate_key(self) -> None:
-        """Advance to the next API key in the rotation pool."""
-        if len(self._api_keys) > 1:
-            self._key_index = (self._key_index + 1) % len(self._api_keys)
-            self.api_key = self._api_keys[self._key_index]
-            logger.info(
-                "Rotated to API key %d/%d for %s.",
-                self._key_index + 1, len(self._api_keys), self.provider,
+    def _pick_slot(self) -> int:
+        """
+        Return the index of the best available key slot.
+
+        Selection order:
+        1. Not in cooldown (429 backoff).
+        2. Below RPM and TPM rotation thresholds.
+        3. Below daily RPD/TPD limits.
+        Among candidates, prefer the slot with lowest tpm_used this minute.
+        If all slots are exhausted, sleep until the soonest cooldown expires.
+        """
+        now = time.time()
+        rpm_lim = self._limits["rpm"]
+        tpm_lim = self._limits["tpm"]
+        rpd_lim = self._limits["rpd"]
+        tpd_lim = self._limits["tpd"]
+
+        for slot in self._slots:
+            self._refresh_slot(slot)
+
+        available = [
+            i for i, s in enumerate(self._slots)
+            if now >= s.cooldown_until
+            and s.rpm_used < int(rpm_lim * _RPM_ROTATION_THRESHOLD)
+            and s.tpm_used < int(tpm_lim * _TPM_ROTATION_THRESHOLD)
+            and s.rpd_used < rpd_lim
+            and s.tpd_used < int(tpd_lim * 0.99)
+        ]
+
+        if available:
+            # Prefer key with the most remaining minute-token budget
+            return min(available, key=lambda i: self._slots[i].tpm_used)
+
+        # All slots near/at limits — find shortest wait
+        soonest_idx = 0
+        soonest_wake = float("inf")
+        for i, s in enumerate(self._slots):
+            # Slot becomes free either when its cooldown expires or its minute window resets
+            wake = max(s.cooldown_until, s.window_start + 60.0)
+            if wake < soonest_wake:
+                soonest_wake = wake
+                soonest_idx = i
+
+        wait = max(0.0, soonest_wake - now)
+        if wait > 0:
+            logger.warning(
+                "All %d key(s) rate-limited. Sleeping %.1fs before retrying.",
+                len(self._slots), wait,
+            )
+            time.sleep(wait)
+            # Refresh after sleep
+            for slot in self._slots:
+                self._refresh_slot(slot)
+
+        return soonest_idx
+
+    def _mark_used(self, slot: "_KeySlot", tokens_in: int, tokens_out: int) -> None:
+        """Update per-key counters after a successful request."""
+        slot.rpm_used += 1
+        slot.tpm_used += tokens_in + tokens_out
+        slot.rpd_used += 1
+        slot.tpd_used += tokens_in + tokens_out
+
+    def _mark_cooldown(self, slot: "_KeySlot", retry_after: int) -> None:
+        """Put a slot into cooldown after receiving a 429."""
+        slot.cooldown_until = time.time() + retry_after
+        if retry_after > 3_600:
+            logger.warning(
+                "Key ...%s has likely hit its DAILY limit (retry_after=%ds). "
+                "It will be skipped until the window resets.",
+                slot.key[-6:], retry_after,
+            )
+        else:
+            logger.warning(
+                "Key ...%s in cooldown for %ds (TPM/RPM limit).",
+                slot.key[-6:], retry_after,
             )
 
-    def _build_headers(self) -> Dict[str, str]:
+    def _rotate_key(self) -> None:
+        """Legacy shim — advance slot index by one (used in log messages)."""
+        self._slot_index = self._pick_slot()
+        self.api_key = self._slots[self._slot_index].key
+
+    def _build_headers(self, key: Optional[str] = None) -> Dict[str, str]:
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {key or self.api_key}",
             "Content-Type": "application/json",
         }
-        # OpenRouter requires these extra headers
         if self.provider == "openrouter":
             headers["HTTP-Referer"] = "https://github.com/csam-project"
             headers["X-Title"] = "CSAM Research"
@@ -307,18 +425,19 @@ class HostedLLMService:
     # ------------------------------------------------------------------
 
     def is_available(self) -> bool:
-        """Return True if the provider endpoint is reachable with the current key."""
-        if not self.api_key:
-            return False
-        try:
-            r = requests.get(
-                f"{self.base_url}/models",
-                headers=self._build_headers(),
-                timeout=10,
-            )
-            return r.status_code == 200
-        except requests.exceptions.RequestException:
-            return False
+        """Return True if any loaded key can reach the provider endpoint."""
+        for slot in self._slots:
+            try:
+                r = requests.get(
+                    f"{self.base_url}/models",
+                    headers=self._build_headers(key=slot.key),
+                    timeout=10,
+                )
+                if r.status_code == 200:
+                    return True
+            except requests.exceptions.RequestException:
+                continue
+        return False
 
     def generate(
         self,
@@ -330,26 +449,28 @@ class HostedLLMService:
         _retry_count: int = 0,
     ) -> str:
         """
-        Generate a chat completion.  Retries on HTTP 429 up to ``max_retries``
-        times with key rotation; raises ``RateLimitExceeded`` if exhausted.
+        Generate a chat completion with multi-key rotation and per-key rate tracking.
 
-        Args:
-            prompt:        User message content.
-            system_prompt: Optional system message.
-            temperature:   Sampling temperature.
-            max_tokens:    Max output tokens.
-            seed:          Optional integer seed for reproducibility.
-            _retry_count:  Internal counter — callers should not set this.
+        On HTTP 429:
+          - Marks the current key in cooldown (using Retry-After header).
+          - Immediately switches to the next available key (no sleep if one exists).
+          - Only sleeps when ALL keys are simultaneously in cooldown/at limits.
+          - Raises RateLimitExceeded after max_retries exhausted attempts.
 
         Returns:
             Generated text string (empty string on non-429 errors).
-
-        Raises:
-            RateLimitExceeded: When ``max_retries`` 429 retries are exhausted.
         """
-        self._rate_limit_wait()
+        if not self._slots:
+            logger.error("No API keys configured for %s.", self.provider)
+            return ""
 
-        messages = []
+        # Pick best available slot (handles per-key RPM/TPM/RPD/TPD checks)
+        slot_idx = self._pick_slot()
+        slot = self._slots[slot_idx]
+        self._slot_index = slot_idx
+        self.api_key = slot.key
+
+        messages: List[Dict[str, str]] = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": prompt})
@@ -369,7 +490,7 @@ class HostedLLMService:
             response = requests.post(
                 f"{self.base_url}/chat/completions",
                 json=payload,
-                headers=self._build_headers(),
+                headers=self._build_headers(key=slot.key),
                 timeout=self.timeout,
             )
             latency_ms = (time.time() - t0) * 1000
@@ -378,35 +499,71 @@ class HostedLLMService:
                 data = response.json()
                 result: str = data["choices"][0]["message"]["content"]
                 usage = data.get("usage", {})
-                self.total_requests += 1
-                self.total_tokens_in  += usage.get("prompt_tokens", 0)
-                self.total_tokens_out += usage.get("completion_tokens", 0)
+                tok_in  = usage.get("prompt_tokens", 0)
+                tok_out = usage.get("completion_tokens", 0)
+                # Update per-key and aggregate counters
+                self._mark_used(slot, tok_in, tok_out)
+                self.total_requests   += 1
+                self.total_tokens_in  += tok_in
+                self.total_tokens_out += tok_out
                 self.total_latency_ms += latency_ms
+                logger.debug(
+                    "OK key=...%s  tok=%d+%d  slot_tpm=%d/%d",
+                    slot.key[-6:], tok_in, tok_out,
+                    slot.tpm_used, self._limits["tpm"],
+                )
                 return self._strip_thinking_tags(result)
 
             elif response.status_code == 429:
                 if _retry_count >= self.max_retries:
                     raise RateLimitExceeded(
                         f"{self.provider} returned HTTP 429 after "
-                        f"{self.max_retries} retries. "
-                        "Consider adding more API keys (GROQ_API_KEY_2, …) "
-                        "or switching provider."
+                        f"{self.max_retries} retries across {len(self._slots)} key(s). "
+                        "Add more API keys (GROQ_API_KEY_2 … GROQ_API_KEY_8) or "
+                        "reduce request rate."
                     )
                 retry_after = int(
                     response.headers.get("Retry-After", self.DEFAULT_BACKOFF)
                 )
-                self._rotate_key()
+                self._mark_cooldown(slot, retry_after)
                 logger.warning(
-                    "Rate limited by %s (attempt %d/%d). "
-                    "Waiting %ds then retrying with key %d/%d.",
-                    self.provider, _retry_count + 1, self.max_retries,
-                    retry_after, self._key_index + 1, len(self._api_keys),
+                    "429 on key ...%s (attempt %d/%d). "
+                    "Switching key and retrying immediately.",
+                    slot.key[-6:], _retry_count + 1, self.max_retries,
                 )
-                time.sleep(retry_after)
+                # Immediate retry — _pick_slot() will choose a fresh key or sleep
                 return self.generate(
                     prompt, system_prompt, temperature, max_tokens,
                     seed=seed, _retry_count=_retry_count + 1,
                 )
+
+            elif response.status_code in (401, 400):
+                # 401 = invalid/revoked key; 400 can mean org restricted
+                body = response.text[:200]
+                is_key_error = (
+                    response.status_code == 401
+                    or "organization_restricted" in body
+                    or "invalid_api_key" in body
+                )
+                if is_key_error:
+                    logger.warning(
+                        "Key ...%s permanently disabled (%d: %s). Rotating.",
+                        slot.key[-6:], response.status_code, body[:80],
+                    )
+                    self._mark_cooldown(slot, retry_after=86_400 * 365)
+                    if _retry_count >= self.max_retries:
+                        raise RateLimitExceeded(
+                            f"All keys exhausted (key error on ...{slot.key[-6:]})."
+                        )
+                    return self.generate(
+                        prompt, system_prompt, temperature, max_tokens,
+                        seed=seed, _retry_count=_retry_count + 1,
+                    )
+                logger.error(
+                    "%s error %d: %s",
+                    self.provider, response.status_code, body,
+                )
+                return ""
 
             else:
                 logger.error(
@@ -515,16 +672,27 @@ class HostedLLMService:
         )
 
     def get_usage_stats(self) -> Dict[str, Any]:
-        """Return accumulated API usage counters."""
+        """Return accumulated API usage counters plus per-key breakdown."""
+        per_key = [
+            {
+                "key_suffix":   s.key[-6:],
+                "rpd_used":     s.rpd_used,
+                "tpd_used":     s.tpd_used,
+                "cooldown_sec": max(0.0, round(s.cooldown_until - time.time(), 1)),
+            }
+            for s in self._slots
+        ]
         return {
-            "provider":        self.provider,
-            "model":           self.model,
-            "total_requests":  self.total_requests,
-            "total_tokens_in": self.total_tokens_in,
+            "provider":         self.provider,
+            "model":            self.model,
+            "total_requests":   self.total_requests,
+            "total_tokens_in":  self.total_tokens_in,
             "total_tokens_out": self.total_tokens_out,
-            "total_tokens":    self.total_tokens_in + self.total_tokens_out,
-            "avg_latency_ms":  self.total_latency_ms / max(1, self.total_requests),
-            "num_api_keys":    len(self._api_keys),
+            "total_tokens":     self.total_tokens_in + self.total_tokens_out,
+            "avg_latency_ms":   self.total_latency_ms / max(1, self.total_requests),
+            "num_api_keys":     len(self._slots),
+            "limits":           self._limits,
+            "per_key":          per_key,
         }
 
     def __repr__(self) -> str:

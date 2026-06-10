@@ -525,7 +525,8 @@ def run_ablation_study(
     use_llm: bool = True,
     llm_model: str = "llama-3.1-8b-instant",
     verbose: bool = True,
-    seed: int = 42
+    seed: int = 42,
+    checkpoint_file: str = None,
 ):
     """
     Run the full ablation study.
@@ -566,11 +567,27 @@ def run_ablation_study(
     if use_llm:
         llm_service = HostedLLMService(provider="groq", model=llm_model)
         if llm_service.is_available():
-            n_keys = len(llm_service._api_keys)
+            n_keys = len(llm_service._slots)
             print(f"  [OK] Groq LLM connected ({llm_model}), {n_keys} API key(s) loaded")
         else:
             print("  [WARN] Groq not available, falling back to word-overlap")
             llm_service = None
+
+    # Per-strategy checkpoint: load any previously completed strategies
+    _ckpt_data: dict = {}
+    _ckpt_path = checkpoint_file or (
+        output_file.replace(".json", "_ckpt.json") if output_file else None
+    )
+    if _ckpt_path and os.path.exists(_ckpt_path):
+        try:
+            with open(_ckpt_path, encoding="utf-8") as _f:
+                _ckpt_data = json.load(_f)
+            print(f"  [RESUME] Checkpoint found: {len(_ckpt_data)} strategy/strategies already done")
+            for done in _ckpt_data:
+                print(f"    - {done} (skipping)")
+        except Exception as _e:
+            print(f"  [WARN] Checkpoint corrupt, starting fresh: {_e}")
+            _ckpt_data = {}
     
     # Define strategies to compare.
     # PB-11: 5th strategy "CA-Formula-Only" isolates the gate contribution:
@@ -591,9 +608,16 @@ def run_ablation_study(
         )),
     ]
     
-    # Run evaluation for each strategy
+    # Run evaluation for each strategy, with per-strategy checkpointing
     results = []
     for strategy_name, strategy in strategies:
+        if strategy_name in _ckpt_data:
+            # Reconstruct EvaluationResult from checkpoint dict
+            saved = _ckpt_data[strategy_name]
+            results.append(EvaluationResult(**saved))
+            print(f"\n[SKIP] {strategy_name} (loaded from checkpoint)")
+            continue
+
         result = evaluate_strategy(
             strategy_name=strategy_name,
             forgetting_strategy=strategy,
@@ -606,6 +630,31 @@ def run_ablation_study(
             llm_seed=seed
         )
         results.append(result)
+
+        # Save this strategy to checkpoint immediately
+        if _ckpt_path:
+            _ckpt_data[strategy_name] = {
+                "strategy_name":         result.strategy_name,
+                "overall_f1":            result.overall_f1,
+                "avg_semantic_sim":      result.avg_semantic_sim,
+                "f1_scores":             result.f1_scores,
+                "semantic_sim_scores":   result.semantic_sim_scores,
+                "memory_count":          result.memory_count,
+                "avg_latency_ms":        result.avg_latency_ms,
+                "consolidation_ratio":   result.consolidation_ratio,
+                "false_forgetting_rate": result.false_forgetting_rate,
+                "qa_details":            result.qa_details,
+            }
+            try:
+                import tempfile
+                _dir = os.path.dirname(_ckpt_path) or "."
+                _fd, _tmp = tempfile.mkstemp(dir=_dir, suffix=".tmp")
+                with os.fdopen(_fd, "w", encoding="utf-8") as _f:
+                    json.dump(_ckpt_data, _f, indent=2)
+                os.replace(_tmp, _ckpt_path)
+                print(f"  [CKPT] Saved checkpoint after '{strategy_name}'")
+            except Exception as _ce:
+                print(f"  [WARN] Checkpoint save failed: {_ce}")
     
     # Print summary table
     print("\n" + "=" * 100)
@@ -666,10 +715,18 @@ def run_ablation_study(
             "api_usage": llm_service.get_usage_stats() if llm_service else None
         }
         
-        with open(output_file, 'w') as f:
+        with open(output_file, 'w', encoding="utf-8") as f:
             json.dump(output_data, f, indent=2)
         print(f"\nResults saved to: {output_file}")
-    
+
+    # Delete checkpoint on successful full completion
+    if _ckpt_path and os.path.exists(_ckpt_path):
+        try:
+            os.remove(_ckpt_path)
+            print(f"Checkpoint deleted: {os.path.basename(_ckpt_path)}")
+        except OSError:
+            pass
+
     return results
 
 
