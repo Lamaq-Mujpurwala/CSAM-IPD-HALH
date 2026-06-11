@@ -1,0 +1,86 @@
+{
+  "timestamp": "2026-06-11T07:47:02.059022",
+  "benchmark": "locomo_multimodel",
+  "max_conversations": 5,
+  "seed": 42,
+  "results": [
+    {
+      "model": "Llama-4-Scout-17B",
+      "provider": "groq",
+      "model_id": "meta-llama/llama-4-scout-17b-16e-instruct",
+      "macro_f1": 0.3391219467124297,
+      "micro_f1": 0.33361422477537006,
+      "avg_semantic_sim": 0.5226754289599218,
+      "f1_ci_95": [
+        0.30678822385026316,
+        0.36002051367837884
+      ],
+      "latency_ms": 409.24229814417373,
+      "total_tokens": 383088,
+      "protocol": {
+        "dataset": "locomo10.json",
+        "num_conversations": 5,
+        "questions_per_conv": null,
+        "retrieval_k": 20,
+        "context_top_k": 10,
+        "seed": 42,
+        "skip_consolidation": true,
+        "timestamp": "2026-06-11T07:32:39.220341",
+        "model_id": "meta-llama/llama-4-scout-17b-16e-instruct",
+        "provider": "groq"
+      }
+    },
+    {
+      "model": "Llama-3.3-70B",
+      "provider": "groq",
+      "model_id": "llama-3.3-70b-versatile",
+      "macro_f1": 0.3467195759130751,
+      "micro_f1": 0.3419087676038168,
+      "avg_semantic_sim": 0.5260601407847132,
+      "f1_ci_95": [
+        0.3162060542817835,
+        0.3698636086897615
+      ],
+      "latency_ms": 199.01835461024348,
+      "total_tokens": 403370,
+      "protocol": {
+        "dataset": "locomo10.json",
+        "num_conversations": 5,
+        "questions_per_conv": null,
+        "retrieval_k": 20,
+        "context_top_k": 10,
+        "seed": 42,
+        "skip_consolidation": true,
+        "timestamp": "2026-06-11T07:37:09.231498",
+        "model_id": "llama-3.3-70b-versatile",
+        "provider": "groq"
+      }
+    },
+    {
+      "model": "GPT-OSS-120B",
+      "provider": "groq",
+      "model_id": "openai/gpt-oss-120b",
+      "macro_f1": 0.21268660910960663,
+      "micro_f1": 0.20953431842063214,
+      "avg_semantic_sim": 0.3645374422196302,
+      "f1_ci_95": [
+        0.18587283530387755,
+        0.23565829668903202
+      ],
+      "latency_ms": 593.4279226877474,
+      "total_tokens": 531078,
+      "protocol": {
+        "dataset": "locomo10.json",
+        "num_conversations": 5,
+        "questions_per_conv": null,
+        "retrieval_k": 20,
+        "context_top_k": 10,
+        "seed": 42,
+        "skip_consolidation": true,
+        "timestamp": "2026-06-11T07:47:02.037530",
+        "model_id": "openai/gpt-oss-120b",
+        "provider": "groq"
+      }
+    }
+  ]
+}
